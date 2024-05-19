@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: doan
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    url: jdbc:mysql://localhost/doan
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  main:
+    lazy-initialization: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 25842139974-c5f6jqqdbgudj1oik22517peir6r4ebm.apps.googleusercontent.com
+            client-secret: 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
+            redirect-uri: "{baseUrl}/oauth2/callback/{registrationId}"
+            scope:
+                - email
+                - profile
+
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        cache: info
+
+app:
+  oauth2:
+    authorizedRedirectUris:
+      - http://localhost:3000/
