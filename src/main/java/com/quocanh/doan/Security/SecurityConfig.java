@@ -3,6 +3,7 @@
 
     import com.quocanh.doan.Security.Oauth2.HttpCookieOauth2AuthorizationRequestRepository;
     import com.quocanh.doan.Security.Oauth2.ImplementOauth2UserService;
+    import com.quocanh.doan.Security.Oauth2.OAuth2AuthenticationSuccessHandler;
     import com.quocanh.doan.Security.Oauth2.RestAuthEntryPoint;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;
@@ -23,9 +24,11 @@
     public class SecurityConfig {
 
         private final ImplementOauth2UserService implementOauth2UserService;
+        private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
-        public SecurityConfig(ImplementOauth2UserService implementOauth2UserService) {
+        public SecurityConfig(ImplementOauth2UserService implementOauth2UserService, OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
             this.implementOauth2UserService = implementOauth2UserService;
+            this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
         }
         @Bean
         public HttpCookieOauth2AuthorizationRequestRepository cookieOauth2AuthorizationRequestRepository() {
@@ -51,7 +54,7 @@
                                     .userInfoEndpoint(
                                             userInfoEndpointConfig -> userInfoEndpointConfig.userService(implementOauth2UserService)
                                     )
-                                    .successHandler()
+                                    .successHandler(oAuth2AuthenticationSuccessHandler)
                     )
             ;
             return http.build();
