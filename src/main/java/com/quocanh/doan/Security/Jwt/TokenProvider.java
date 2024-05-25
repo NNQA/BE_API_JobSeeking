@@ -5,8 +5,11 @@ import com.quocanh.doan.Security.AppProperties;
 import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.micrometer.observation.transport.ResponseContext;
+import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +25,19 @@ public class TokenProvider {
     public TokenProvider(AppProperties appProperties) {
         this.appProperties = appProperties;
     }
+    private final String COOKIE_JWT = "cookie_authenticated";
+
+    public ResponseCookie generateJwtCookie(Authentication authentication) {
+        String jwt = generateToken(authentication);
+
+        return ResponseCookie.from(COOKIE_JWT, jwt).path("/").maxAge(24 * 60 * 60).httpOnly(true).build();
+    }
+    public ResponseCookie getCleanJwtCookie() {
+        ResponseCookie responseCookie = ResponseCookie.from(COOKIE_JWT,null).path("/").build();
+        return responseCookie;
+    }
+
+
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key())

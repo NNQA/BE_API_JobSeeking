@@ -5,13 +5,20 @@
     import com.quocanh.doan.Security.Oauth2.ImplementOauth2UserService;
     import com.quocanh.doan.Security.Oauth2.OAuth2AuthenticationSuccessHandler;
     import com.quocanh.doan.Security.Oauth2.RestAuthEntryPoint;
+    import com.quocanh.doan.Security.Oauth2.OAuth2AuthenticationFailureHandler;
+    import com.quocanh.doan.Service.ImplementService.User.UserDetailsImplementService;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;
+    import org.springframework.security.authentication.AuthenticationManager;
+    import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+    import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
     import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
     import org.springframework.security.config.annotation.web.builders.HttpSecurity;
     import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
     import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
     import org.springframework.security.config.http.SessionCreationPolicy;
+    import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+    import org.springframework.security.crypto.password.PasswordEncoder;
     import org.springframework.security.web.SecurityFilterChain;
 
     @Configuration
@@ -25,10 +32,36 @@
 
         private final ImplementOauth2UserService implementOauth2UserService;
         private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+        private final UserDetailsImplementService userDetailsImplementService;
+        private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+        private final RestAuthEntryPoint restAuthEntryPoint;
 
-        public SecurityConfig(ImplementOauth2UserService implementOauth2UserService, OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler) {
+        public SecurityConfig(ImplementOauth2UserService implementOauth2UserService,
+                              OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
+                              UserDetailsImplementService userDetailsImplementService, RestAuthEntryPoint restAuthEntryPoint,
+                              OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler) {
             this.implementOauth2UserService = implementOauth2UserService;
             this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
+            this.userDetailsImplementService = userDetailsImplementService;
+            this.restAuthEntryPoint = restAuthEntryPoint;
+            this.oAuth2AuthenticationFailureHandler = oAuth2AuthenticationFailureHandler;
+        }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+            return new BCryptPasswordEncoder();
+        }
+
+        @Bean
+        public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+            return authConfig.getAuthenticationManager();
+        }
+        @Bean
+        public DaoAuthenticationProvider authenticationProvider() {
+            DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+
+            authenticationProvider.setUserDetailsService(userDetailsImplementService);
+            authenticationProvider.setPasswordEncoder(passwordEncoder());
+            return authenticationProvider;
         }
         @Bean
         public HttpCookieOauth2AuthorizationRequestRepository cookieOauth2AuthorizationRequestRepository() {
@@ -38,7 +71,7 @@
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
             http.csrf(AbstractHttpConfigurer::disable).cors(AbstractHttpConfigurer::disable)
-                    .exceptionHandling(exception -> exception.authenticationEntryPoint(new RestAuthEntryPoint()))
+                    .exceptionHandling(exception -> exception.authenticationEntryPoint(restAuthEntryPoint))
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .httpBasic(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(
@@ -55,8 +88,10 @@
                                             userInfoEndpointConfig -> userInfoEndpointConfig.userService(implementOauth2UserService)
                                     )
                                     .successHandler(oAuth2AuthenticationSuccessHandler)
+                                    .failureHandler(oAuth2AuthenticationFailureHandler)
                     )
             ;
+            http.authenticationProvider(authenticationProvider());
             return http.build();
         }
 

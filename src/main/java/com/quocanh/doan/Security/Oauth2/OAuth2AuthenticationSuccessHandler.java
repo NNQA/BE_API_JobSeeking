@@ -25,13 +25,13 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final AppProperties appProperties;
 
     private final TokenProvider tokenProvider;
-
     public  OAuth2AuthenticationSuccessHandler(TokenProvider tokenProvider, AppProperties appProperties,
                 HttpCookieOauth2AuthorizationRequestRepository httpCookieOauth2AuthorizationRequestRepository) {
         this.httpCookieOauth2AuthorizationRequestRepository = httpCookieOauth2AuthorizationRequestRepository;
         this.tokenProvider = tokenProvider;
         this.appProperties = appProperties;
     }
+    @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         String targetUrl = determineTargetUrl(request, response, authentication);
         if(response.isCommitted()) {
