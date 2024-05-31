@@ -1,6 +1,8 @@
     package com.quocanh.doan.Security;
 
 
+    import com.quocanh.doan.Security.CustomAuthenticationProvider.ExpandDaoAuthenticationProvider;
+    import com.quocanh.doan.Security.Jwt.AuthTokenFilter;
     import com.quocanh.doan.Security.Oauth2.HttpCookieOauth2AuthorizationRequestRepository;
     import com.quocanh.doan.Security.Oauth2.ImplementOauth2UserService;
     import com.quocanh.doan.Security.Oauth2.OAuth2AuthenticationSuccessHandler;
@@ -21,6 +23,7 @@
     import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
     import org.springframework.security.crypto.password.PasswordEncoder;
     import org.springframework.security.web.SecurityFilterChain;
+    import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
     @Configuration
     @EnableWebSecurity
@@ -36,6 +39,7 @@
         private final UserDetailsImplementService userDetailsImplementService;
         private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
         private final RestAuthEntryPoint restAuthEntryPoint;
+
 
         public SecurityConfig(ImplementOauth2UserService implementOauth2UserService,
                               OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
@@ -57,12 +61,16 @@
             return authConfig.getAuthenticationManager();
         }
         @Bean
-        public DaoAuthenticationProvider authenticationProvider() {
-            DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
+        public ExpandDaoAuthenticationProvider authenticationProvider() {
+            ExpandDaoAuthenticationProvider authenticationProvider = new ExpandDaoAuthenticationProvider();
 
             authenticationProvider.setUserDetailsService(userDetailsImplementService);
             authenticationProvider.setPasswordEncoder(passwordEncoder());
             return authenticationProvider;
+        }
+        @Bean
+        public AuthTokenFilter tokenAuthenticationFilter() {
+            return new AuthTokenFilter();
         }
         @Bean
         public HttpCookieOauth2AuthorizationRequestRepository cookieOauth2AuthorizationRequestRepository() {
@@ -79,6 +87,7 @@
                             authorize -> authorize
                                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                                     .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                                    .anyRequest().authenticated()
                     )
                     .oauth2Login(
                             oauth -> oauth
@@ -92,7 +101,7 @@
                                     )
                                     .successHandler(oAuth2AuthenticationSuccessHandler)
                                     .failureHandler(oAuth2AuthenticationFailureHandler)
-                    )
+                    ).addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
             ;
             http.authenticationProvider(authenticationProvider());
             return http.build();
