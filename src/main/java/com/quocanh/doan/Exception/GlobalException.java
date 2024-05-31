@@ -1,6 +1,7 @@
 package com.quocanh.doan.Exception;
 
 
+import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
 import com.quocanh.doan.Exception.Signup.EmailExeption;
 import com.quocanh.doan.Exception.Signup.EmailExistException;
 import com.quocanh.doan.Exception.Signup.PasswordLengthException;
@@ -24,8 +25,6 @@ public class GlobalException {
         apiResponseProblemDetails.setInstance(URI.create(instance));
         apiResponseProblemDetails.setDetail(exception.getMessage());
         apiResponseProblemDetails.setStatus(status);
-        System.out.println("Asdsad");
-        System.out.println(apiResponseProblemDetails);
         return ResponseEntity.badRequest().body(apiResponseProblemDetails);
     }
 
@@ -55,6 +54,25 @@ public class GlobalException {
             title = "System exception";
             instance = "/system/exception";
         }
+        return buildResponseEntity(title, instance,status,exception);
+    }
+
+    @ExceptionHandler(value = {CheckCodeException.class})
+    public ResponseEntity<ApiResponseProblemDetails> handleCheckcode(RuntimeException exception) {
+        String title;
+        String instance;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        title = "System exception";
+        instance = "/system/checkcode";
+        return buildResponseEntity(title, instance,status,exception);
+    }
+    @ExceptionHandler(value = {UserNotFoundException.class})
+    public ResponseEntity<ApiResponseProblemDetails> handleUserNotFound(RuntimeException exception) {
+        String title;
+        String instance;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        title = "User not found";
+        instance = "/system/auth";
         return buildResponseEntity(title, instance,status,exception);
     }
 

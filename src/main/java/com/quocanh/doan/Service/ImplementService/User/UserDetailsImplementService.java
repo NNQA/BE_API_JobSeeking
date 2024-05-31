@@ -1,5 +1,7 @@
 package com.quocanh.doan.Service.ImplementService.User;
 
+import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
+import com.quocanh.doan.Exception.UserNotFoundException;
 import com.quocanh.doan.Model.User;
 import com.quocanh.doan.Repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -20,8 +22,10 @@ public class UserDetailsImplementService implements UserDetailsService {
     public UserDetails loadUserByUsername(String usernameOremail) throws UsernameNotFoundException {
 
         User user = userRepository.findUserByEmailOrName(usernameOremail, usernameOremail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with " + usernameOremail));
-
+                .orElseThrow(() -> new UserNotFoundException("User not found with " + usernameOremail));
+        if(!user.isCheckCode()) {
+            throw new CheckCodeException("User not verified. Please check your mail for the verification code");
+        }
         return UserPrincipal.build(user);
     }
 }

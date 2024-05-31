@@ -27,6 +27,7 @@ public class EmailImplementService implements IEmailService {
     }
     @Override
     public void sendMailRegister(String toEmail, String code) {
+        System.out.println(fromMail);
         try {
             ClassPathResource resource = new ClassPathResource("templates/SendMailRegisterFile.html");
             InputStream inputStream = resource.getInputStream();
@@ -41,10 +42,7 @@ public class EmailImplementService implements IEmailService {
             helper.setSubject("Confirm code");
             helper.setText(htmlContent, true); // true indicates the content is HTML
             javaMailSender.send(mimeMessage);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (MessagingException e) {
+        } catch (IOException | MessagingException e) {
             throw new RuntimeException(e);
         }
 

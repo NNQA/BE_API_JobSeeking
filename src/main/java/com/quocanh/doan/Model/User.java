@@ -4,8 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NonNull;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.ManyToAny;
+import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,11 +41,19 @@ public class User {
 
     private String codeConfirm;
 
+    private boolean checkCode;
+
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "roles_id", referencedColumnName = "id")
     )
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Set<Role> roles = new HashSet<Role>();
+    @CreationTimestamp
+    private LocalDateTime createdDateTime;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedDateTime;
+
     public User() {}
 }

@@ -9,6 +9,7 @@
     import com.quocanh.doan.Service.ImplementService.User.UserDetailsImplementService;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;
+    import org.springframework.http.HttpMethod;
     import org.springframework.security.authentication.AuthenticationManager;
     import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
     import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -75,7 +76,9 @@
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .httpBasic(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(
-                            authorize -> authorize.requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                            authorize -> authorize
+                                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                    .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
                     )
                     .oauth2Login(
                             oauth -> oauth
