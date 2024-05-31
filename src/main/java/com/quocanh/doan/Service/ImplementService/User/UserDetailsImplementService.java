@@ -28,4 +28,14 @@ public class UserDetailsImplementService implements UserDetailsService {
         }
         return UserPrincipal.build(user);
     }
+
+    @Transactional
+    public UserDetails loadUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new UserNotFoundException("User not found with " + id)
+        );
+
+        return UserPrincipal.build(user);
+    }
+
 }
