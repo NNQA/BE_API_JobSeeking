@@ -2,6 +2,7 @@ package com.quocanh.doan.Exception;
 
 
 import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
+import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
 import com.quocanh.doan.Exception.Signup.EmailExeption;
 import com.quocanh.doan.Exception.Signup.EmailExistException;
 import com.quocanh.doan.Exception.Signup.PasswordLengthException;
@@ -75,5 +76,13 @@ public class GlobalException {
         instance = "/system/auth";
         return buildResponseEntity(title, instance,status,exception);
     }
-
+    @ExceptionHandler(value = {InvalidCredenticalException.class})
+    public ResponseEntity<ApiResponseProblemDetails> handleInvalidCredentical(RuntimeException exception) {
+        String title;
+        String instance;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        title = "Invalid credentical";
+        instance = "/system/auth";
+        return buildResponseEntity(title, instance,status,exception);
+    }
 }
