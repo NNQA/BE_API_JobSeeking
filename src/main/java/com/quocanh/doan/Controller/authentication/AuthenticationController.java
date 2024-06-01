@@ -2,6 +2,7 @@ package com.quocanh.doan.Controller.authentication;
 
 
 import com.quocanh.doan.Security.Jwt.TokenProvider;
+import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
 import com.quocanh.doan.Service.ImplementService.User.UserRefreshTokenService;
 import com.quocanh.doan.Service.ImplementService.User.UserService;
 import com.quocanh.doan.dto.request.ApiResponseProblemDetails;
@@ -9,6 +10,7 @@ import com.quocanh.doan.dto.request.authentication.CodeRequest;
 import com.quocanh.doan.dto.request.authentication.LoginRequest;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
 import com.quocanh.doan.dto.response.LoginResponse;
+import com.quocanh.doan.dto.response.UserResponse;
 import org.springframework.http.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -48,12 +50,17 @@ public class AuthenticationController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             String accessToken = tokenProvider.generateToken(authentication);
             Long refreshToken = userRefreshTokenService.saveTokenRequest(authentication);
-            LoginResponse loginResponse = new LoginResponse();
-            loginResponse.setRefreshToken(String.valueOf(refreshToken));
-            loginResponse.setAccessToken(accessToken);
-            return ResponseEntity.ok().body(loginResponse);
+
+            return ResponseEntity.ok().body(
+                    new UserResponse(
+                            userPrincipal.getId(),
+                            userPrincipal.getName(),
+                            userPrincipal.getEmail(),accessToken,String.valueOf(refreshToken)
+                    )
+            );
     }
 
     @PostMapping("/verifycode")

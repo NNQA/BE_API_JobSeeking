@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 public class WebMvcConfig implements WebMvcConfigurer {
 
-    private final String[] allowerOrigins = {"http://localhost:3000","http://localhost:8080"};
+    private final String[] allowerOrigins = {"http://localhost:3000","http://localhost:8080","https://127.000.1:3000"};
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
