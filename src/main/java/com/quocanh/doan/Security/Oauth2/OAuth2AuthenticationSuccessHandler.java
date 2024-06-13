@@ -3,6 +3,7 @@ package com.quocanh.doan.Security.Oauth2;
 import com.quocanh.doan.Exception.BadRequetException;
 import com.quocanh.doan.Security.AppProperties;
 import com.quocanh.doan.Security.Jwt.TokenProvider;
+import com.quocanh.doan.Service.ImplementService.User.UserRefreshTokenService;
 import com.quocanh.doan.Utils.CookieUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -25,11 +26,14 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final AppProperties appProperties;
 
     private final TokenProvider tokenProvider;
+    private final UserRefreshTokenService userRefreshTokenService;
     public  OAuth2AuthenticationSuccessHandler(TokenProvider tokenProvider, AppProperties appProperties,
+                UserRefreshTokenService userRefreshTokenService,
                 HttpCookieOauth2AuthorizationRequestRepository httpCookieOauth2AuthorizationRequestRepository) {
         this.httpCookieOauth2AuthorizationRequestRepository = httpCookieOauth2AuthorizationRequestRepository;
         this.tokenProvider = tokenProvider;
         this.appProperties = appProperties;
+        this.userRefreshTokenService = userRefreshTokenService;
     }
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
@@ -52,8 +56,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String targetUri = redirectUrl.orElse(getDefaultTargetUrl());
         String token = tokenProvider.generateToken(authentication);
 
-
+        Long refreshToken = userRefreshTokenService.saveTokenRequest(authentication);
         return UriComponentsBuilder.fromUriString(targetUri)
+                .queryParam("accessToken", token)
+                .queryParam("refreshToken", refreshToken)
                 .build().toUriString();
     }
     protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {

@@ -50,15 +50,13 @@ public class AuthenticationController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             String accessToken = tokenProvider.generateToken(authentication);
             Long refreshToken = userRefreshTokenService.saveTokenRequest(authentication);
 
             return ResponseEntity.ok().body(
-                    new UserResponse(
-                            userPrincipal.getId(),
-                            userPrincipal.getName(),
-                            userPrincipal.getEmail(),accessToken,String.valueOf(refreshToken)
+                    new LoginResponse(
+                            accessToken,
+                            String.valueOf(refreshToken)
                     )
             );
     }

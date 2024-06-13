@@ -3,10 +3,7 @@ package com.quocanh.doan.Exception;
 
 import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
 import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
-import com.quocanh.doan.Exception.Signup.EmailExeption;
-import com.quocanh.doan.Exception.Signup.EmailExistException;
-import com.quocanh.doan.Exception.Signup.PasswordLengthException;
-import com.quocanh.doan.Exception.Signup.PasswordException;
+import com.quocanh.doan.Exception.Signup.*;
 import com.quocanh.doan.dto.request.ApiResponseProblemDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,6 +79,15 @@ public class GlobalException {
         String instance;
         HttpStatus status = HttpStatus.BAD_REQUEST;
         title = "Invalid credentical";
+        instance = "/system/auth";
+        return buildResponseEntity(title, instance,status,exception);
+    }
+    @ExceptionHandler(value = {SignupException.class})
+    public ResponseEntity<ApiResponseProblemDetails> handleSignup(RuntimeException exception) {
+        String title;
+        String instance;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        title = "SignUp exception";
         instance = "/system/auth";
         return buildResponseEntity(title, instance,status,exception);
     }

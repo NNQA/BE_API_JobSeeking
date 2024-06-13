@@ -1,13 +1,13 @@
 package com.quocanh.doan.Service.ImplementService.User;
 
 import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
-import com.quocanh.doan.Exception.Signup.EmailExeption;
-import com.quocanh.doan.Exception.Signup.EmailExistException;
-import com.quocanh.doan.Exception.Signup.PasswordException;
-import com.quocanh.doan.Exception.Signup.PasswordLengthException;
+import com.quocanh.doan.Exception.Signup.*;
 import com.quocanh.doan.Exception.UserNotFoundException;
 import com.quocanh.doan.Model.AuthProvider;
+import com.quocanh.doan.Model.ERole;
+import com.quocanh.doan.Model.Role;
 import com.quocanh.doan.Model.User;
+import com.quocanh.doan.Repository.RoleRepository;
 import com.quocanh.doan.Repository.UserRepository;
 import com.quocanh.doan.Service.ImplementService.Email.EmailImplementService;
 import com.quocanh.doan.Service.Interface.UserIntef.IUserService;
@@ -15,8 +15,7 @@ import com.quocanh.doan.dto.request.authentication.SignupRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class UserService implements IUserService {
@@ -26,10 +25,13 @@ public class UserService implements IUserService {
     private final PasswordEncoder encoder;
     private final EmailImplementService emailImplementService;
 
-    public UserService(UserRepository userRepository, PasswordEncoder encoder, EmailImplementService emailImplementService) {
+    private final RoleRepository roleRepository;
+    public UserService(UserRepository userRepository, RoleRepository roleRepository,
+                       PasswordEncoder encoder, EmailImplementService emailImplementService) {
         this.userRepository = userRepository;
         this.encoder = encoder;
         this.emailImplementService = emailImplementService;
+        this.roleRepository = roleRepository;
     }
     @Override
     public User save(User user) {
@@ -53,14 +55,22 @@ public class UserService implements IUserService {
             throw new PasswordLengthException("Password needs to be at least 4 characters");
         }
         Random  random = new Random();
-        int code = random.nextInt(500);
-        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
+
         User user = new User();
         user.setEmail(signupRequest.getEmail());
         user.setPassword(encoder.encode(signupRequest.getPassword()));
         user.setProvider(AuthProvider.local);
-        user.setCodeConfirm(String.valueOf(code));
+
         user.setCheckCode(false);
+        Set<Role> roles = new HashSet<>();
+        Role supplierRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new SignupException("Error: Role is not found."));
+        roles.add(supplierRole);
+        user.setRoles(roles);
+        int code = random.nextInt(500);
+        user.setCodeConfirm(String.valueOf(code));
+
+        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
         this.save(user);
     }
     @Override

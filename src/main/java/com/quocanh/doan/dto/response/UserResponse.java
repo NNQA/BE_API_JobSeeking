@@ -13,6 +13,4 @@ public class UserResponse {
     Long id;
     String name;
     String email;
-    String accessToken;
-    String refreshToken;
 }
