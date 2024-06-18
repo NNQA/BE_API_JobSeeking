@@ -12,6 +12,7 @@ import com.quocanh.doan.Repository.UserRepository;
 import com.quocanh.doan.Service.ImplementService.Email.EmailImplementService;
 import com.quocanh.doan.Service.Interface.UserIntef.IUserService;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -61,16 +62,16 @@ public class UserService implements IUserService {
         user.setPassword(encoder.encode(signupRequest.getPassword()));
         user.setProvider(AuthProvider.local);
 
-        user.setCheckCode(false);
+        user.setCheckCode(true);
         Set<Role> roles = new HashSet<>();
         Role supplierRole = roleRepository.findByName(ERole.ROLE_USER)
                 .orElseThrow(() -> new SignupException("Error: Role is not found."));
         roles.add(supplierRole);
         user.setRoles(roles);
-        int code = random.nextInt(500);
-        user.setCodeConfirm(String.valueOf(code));
+//        int code = random.nextInt(500);
+//        user.setCodeConfirm(String.valueOf(code));
 
-        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
+//        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
         this.save(user);
     }
     @Override
@@ -84,5 +85,21 @@ public class UserService implements IUserService {
         } else {
             throw new CheckCodeException("Your code provided does not match");
         }
+    }
+
+    @Override
+    public User updateRoleUser(Long id) {
+        User user = userRepository.findById(id).orElseThrow(
+                () -> new UserNotFoundException("User not found with " + id)
+        );
+        Set<Role> roles = new HashSet<>();
+        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                .orElseThrow(() -> new SignupException("Error: Role is not found."));
+        Role supplierRole = roleRepository.findByName(ERole.ROLE_SUPPLIER)
+                .orElseThrow(() -> new SignupException("Error: Role is not found."));
+        roles.add(supplierRole);
+        roles.add(userRole);
+        user.setRoles(roles);
+        return this.save(user);
     }
 }

@@ -27,7 +27,8 @@ public class UserController {
                 new UserResponse(
                         userPrincipal.getId(),
                         userPrincipal.getName(),
-                        userPrincipal.getEmail()
+                        userPrincipal.getEmail(),
+                        userPrincipal.getAuthorities()
                 )
         );
     }
