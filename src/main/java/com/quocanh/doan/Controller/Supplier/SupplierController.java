@@ -38,6 +38,6 @@ public class SupplierController {
         companyImplementService.upToCompany(companyRequest, userPrincipal, bindingResult);
         return ResponseEntity.ok().body(HttpStatus.OK);
     }
-
+    
 
 }
