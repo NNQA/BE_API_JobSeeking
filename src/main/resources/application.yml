@@ -5,6 +5,10 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 10
   datasource:
     url: jdbc:mysql://localhost/doan
     username: root
