@@ -3,6 +3,7 @@ package com.quocanh.doan.Exception;
 
 import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
 import com.quocanh.doan.Exception.Company.CompanyExeptionHanlde;
+import com.quocanh.doan.Exception.Job.JobExcetionHandler;
 import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
 import com.quocanh.doan.Exception.Signup.*;
 import com.quocanh.doan.dto.request.ApiResponseProblemDetails;
@@ -100,6 +101,15 @@ public class GlobalException {
         HttpStatus status = HttpStatus.BAD_REQUEST;
         title = "Company exception";
         instance = "/system/company";
+        return buildResponseEntity(title, instance,status,exception);
+    }
+    @ExceptionHandler(value = {JobExcetionHandler.class})
+    public ResponseEntity<ApiResponseProblemDetails> handleExeptionJob(RuntimeException exception) {
+        String title;
+        String instance;
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+        title = "Job exception";
+        instance = "/system/post";
         return buildResponseEntity(title, instance,status,exception);
     }
 }
