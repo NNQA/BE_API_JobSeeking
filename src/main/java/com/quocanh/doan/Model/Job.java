@@ -15,7 +15,7 @@ import java.util.Set;
 @Entity
 @Data
 @Table(name = "Job")
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler" })
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "company" })
 public class Job {
     private static final Integer STATUS_INACTIVE = 0;
     private static final Integer STATUS_ACTIVE = 1;
@@ -30,6 +30,16 @@ public class Job {
     @JoinColumn(name = "description")
     @NotNull(message = "Description must be provided")
     private String description;
+
+    @JoinColumn(name = "experience")
+    @NotNull(message = "Experience must be provided")
+    private String experience;
+
+    @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
+    @JoinColumn(name = "address")
+    @NotNull(message = "Address must be provided.")
+    private Address address;
+
 
     @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.LAZY)
     @JoinColumn(name = "position")
@@ -61,15 +71,24 @@ public class Job {
     )
     private Set<Skill> skills = new HashSet<>();
 
+    @NotNull(message = "Job Category must be provided")
+    @ManyToMany(
+            fetch = FetchType.LAZY,
+            cascade = {
+                    CascadeType.PERSIST,
+                    CascadeType.MERGE,
+            }
+    )
+    @JoinTable(
+            name = "job_categories",
+            joinColumns = @JoinColumn(name = "job_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<JobCategory> categories = new HashSet<>();
 
     @JoinColumn(name = "salary")
     @NotNull(message = "Salary must be provided")
-    @Min(value = 0, message = "Price must be {value} or higher")
-    private Double salary;
-
-    @JoinColumn(name = "activeDate")
-    @NotNull(message = "ActiveDate must be provided")
-    private LocalDateTime activeDate;
+    private String salary;
 
     @JoinColumn(name = "expiredDate")
     @NotNull(message = "ExpiredDate must be provided")

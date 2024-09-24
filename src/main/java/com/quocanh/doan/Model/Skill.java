@@ -24,7 +24,10 @@ public class Skill {
     private Long id;
 
     @NotNull(message = "Property must be provided")
-    @JoinColumn(name = "name_skill")
+    @Column(name = "name_skill", unique = true, nullable = false)
     private String nameSkill;
     public Skill() {}
+    public Skill(String nameSkill) {
+        this.nameSkill = nameSkill;
+    }
 }

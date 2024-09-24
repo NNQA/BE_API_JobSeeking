@@ -68,8 +68,8 @@ public class UserService implements IUserService {
                 .orElseThrow(() -> new SignupException("Error: Role is not found."));
         roles.add(supplierRole);
         user.setRoles(roles);
-//        int code = random.nextInt(500);
-//        user.setCodeConfirm(String.valueOf(code));
+        int code = random.nextInt(500);
+        user.setCodeConfirm(String.valueOf(code));
 
 //        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
         this.save(user);

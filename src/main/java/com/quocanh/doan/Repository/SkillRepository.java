@@ -9,6 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 public interface SkillRepository extends JpaRepository<Skill, Long> {
-    @Query("select s from Skill s where  s.nameSkill in :skillNames")
+    @Query("select s from Skill  s where s.nameSkill in :skillNames")
     List<Skill> findByNameSkills(@Param("skillNames") Set<String> skillNames);
 }

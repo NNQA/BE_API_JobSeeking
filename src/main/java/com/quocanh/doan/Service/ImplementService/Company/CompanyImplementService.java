@@ -32,8 +32,8 @@ public class CompanyImplementService implements ICompanyService {
         this.userService = userService;
         this.addressRepository = addressRepository;
     }
-    private String createMessageError(BindingResult bindingResult) {
-        return bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage).collect(Collectors.joining(" "));
+    private String[] createMessageError(BindingResult bindingResult) {
+        return bindingResult.getAllErrors().stream().map(ObjectError::getDefaultMessage).toArray(String[]::new);
     }
     public Company save(Company company) {
         return this.companyRepository.save(company);
@@ -43,17 +43,20 @@ public class CompanyImplementService implements ICompanyService {
         logger.info("############## service is working");
         if(bindingResult.hasErrors()) {
             logger.info("---------------- Validation has errors - " + createMessageError(bindingResult));
-            throw new CompanyExeptionHanlde(createMessageError(bindingResult));
+            throw new CompanyExeptionHanlde(createMessageError(bindingResult)[0]);
         }
         if(Objects.isNull(companyRequest)) {
             logger.info("---------------- Company is null");
             throw new CompanyExeptionHanlde("Company is null");
         }
         try {
+            System.out.println(companyRequest);
+            Address address = this.addressRepository.save(new Address(companyRequest.getAddress().getProvinceName(),
+                    companyRequest.getAddress().getDistrictName(), companyRequest.getAddress().getCommuneName()
+                    ,companyRequest.getAddress().getFormattedAddressName(), companyRequest.getAddress().getLat(),
+                    companyRequest.getAddress().getLng()));
             logger.info("---------------- Update role user");
             User user = userService.updateRoleUser(userPrincipal.getId());
-            System.out.println(companyRequest);
-            Address address = this.addressRepository.save(new Address(companyRequest.getAddress().getProvinceName(),companyRequest.getAddress().getDistrictName()));
             Company company = new Company(
                     user,
                     address,

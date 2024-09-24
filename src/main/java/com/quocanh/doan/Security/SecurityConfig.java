@@ -101,7 +101,6 @@
                                     .successHandler(oAuth2AuthenticationSuccessHandler)
                                     .failureHandler(oAuth2AuthenticationFailureHandler)
                     ).addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-            ;
             http.authenticationProvider(authenticationProvider());
             return http.build();
         }
