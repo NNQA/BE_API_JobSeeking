@@ -15,12 +15,12 @@ public class JobResponse {
     Long id;
     String title;
     String description;
-    PositionResponse positionResponse;
-    JobTypeResponse jobTypeResponse;
-    List<SkillReponse> skillReponses;
-    Double salary;
+    PositionResponse position;
+    JobTypeResponse jobType;
+    List<SkillReponse> skills;
+    String salary;
+    String experience;
     LocalDateTime expiredDate;
-    LocalDateTime activeDate;
     LocalDateTime createdDateTime;
     LocalDateTime updatedDateTime;
 }

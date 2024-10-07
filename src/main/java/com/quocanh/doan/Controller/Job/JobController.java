@@ -4,8 +4,10 @@ package com.quocanh.doan.Controller.Job;
 import com.quocanh.doan.Model.Job;
 import com.quocanh.doan.Service.ImplementService.Job.JobImplement;
 import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
+import com.quocanh.doan.Utils.AppConstants;
 import com.quocanh.doan.dto.request.Company.CompanyRequest;
 import com.quocanh.doan.dto.request.Job.JobRequest;
+import com.quocanh.doan.dto.response.Job.JobPaginationResponse;
 import com.quocanh.doan.dto.response.Job.JobTypeResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -62,4 +64,19 @@ public class JobController {
                 jobTypeResponse
         );
     }
+
+
+    @GetMapping("/getJobPagination")
+    public ResponseEntity<?> getPaginationAllProduct(
+            @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_CURRENT, required = false) Integer pageNo,
+            @RequestParam(value = "size", defaultValue =AppConstants.DEFAULT_PAGE_SIZE, required = false) Integer pageSize
+
+    ) {
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        JobPaginationResponse jobPaginationResponse = jobImplement.getAllJobPage(userPrincipal.getId(), pageNo - 1, pageSize);
+        System.out.println(jobPaginationResponse);
+        return ResponseEntity.ok(jobPaginationResponse);
+
+    }
+
 }
