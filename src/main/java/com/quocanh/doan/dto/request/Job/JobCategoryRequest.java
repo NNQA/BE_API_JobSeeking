@@ -12,6 +12,5 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class JobCategoryRequest {
     @NotNull(message = "Property must be provided")
-    private String jobNameCategory;
-
+    private String jobCategoryName;
 }

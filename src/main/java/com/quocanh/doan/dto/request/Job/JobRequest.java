@@ -26,7 +26,7 @@ public class JobRequest {
     private JobPositionRequest position;
 
     @NotNull(message = "Job type must be provided")
-    private JobTypeRequest jobType;
+    private JobTypeRequest type;
 
     @NotNull(message = "Salary must be provided")
     private String salary;
@@ -37,7 +37,7 @@ public class JobRequest {
     private Set<SkillRequest> skills;
 
     @NotNull(message = "ExpiredDate must be provided")
-    private Set<JobCategoryRequest> jobCategories;
+    private Set<JobCategoryRequest> categories;
 
     @NotNull(message = "Experience must be provided")
     private String experience;
