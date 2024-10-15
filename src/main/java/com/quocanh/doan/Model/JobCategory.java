@@ -23,6 +23,7 @@ public class JobCategory {
     private static final Integer STATUS_INACTIVE = 0;
     private static final Integer STATUS_ACTIVE = 1;
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private Set<Job> listJob = new HashSet<>();
 
     @Id
@@ -30,7 +31,6 @@ public class JobCategory {
     private Long id;
 
 
-    @JsonIgnore
     @Column(name="job_category_name")
     @Pattern(regexp = "^[A-Za-z-, \\.\\/\\(\\)]{2,}$", message="Job category name is not valid.")
     @NotNull(message = "Job category name must be provided")
