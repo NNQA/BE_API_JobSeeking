@@ -8,6 +8,7 @@ import com.quocanh.doan.Utils.AppConstants;
 import com.quocanh.doan.dto.request.Company.CompanyRequest;
 import com.quocanh.doan.dto.request.Job.JobRequest;
 import com.quocanh.doan.dto.response.Job.JobPaginationResponse;
+import com.quocanh.doan.dto.response.Job.JobResponse;
 import com.quocanh.doan.dto.response.Job.JobTypeResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -64,8 +65,24 @@ public class JobController {
                 jobTypeResponse
         );
     }
-
-
+    @GetMapping("/getDetailJobForCompany/{id}")
+    public ResponseEntity<?> getDetailJobForCompany(@PathVariable Long id) {
+        logger.info("############## /api/job/getDetailJob started");
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        JobResponse jobTypeResponse = jobImplement.getByIdForCompany(id, userPrincipal.getId());
+        System.out.println(jobTypeResponse);
+        return ResponseEntity.ok().body(
+                jobTypeResponse
+        );
+    }
+    @PutMapping("/udpateDetailJobForCompany/{id}")
+    @PreAuthorize("hasRole('ROLE_SUPPLIER')")
+    public ResponseEntity<?> updateDetailJobForCompany(@PathVariable Long id,@Valid @RequestBody JobRequest request, BindingResult bindingResult) {
+        logger.info("############## /api/job/updateDetailJob started");
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        jobImplement.updateJob(id,request, userPrincipal, bindingResult);
+        return ResponseEntity.ok().body(HttpStatus.OK);
+    }
     @GetMapping("/getJobPagination")
     public ResponseEntity<?> getPaginationAllProduct(
             @RequestParam(value = "page", defaultValue = AppConstants.DEFAULT_PAGE_CURRENT, required = false) Integer pageNo,
@@ -77,6 +94,15 @@ public class JobController {
         System.out.println(jobPaginationResponse);
         return ResponseEntity.ok(jobPaginationResponse);
 
+    }
+
+    @DeleteMapping("/deleteDetailJobForCompany/{id}")
+    @PreAuthorize("hasRole('ROLE_SUPPLIER')")
+    public ResponseEntity<?> deleteDetailJobForCompany(@PathVariable Long id) {
+        logger.info("############## /api/job/deleteDetailJob started");
+
+        this.jobImplement.DeleteById(id);
+        return ResponseEntity.ok().body(HttpStatus.OK);
     }
 
 }

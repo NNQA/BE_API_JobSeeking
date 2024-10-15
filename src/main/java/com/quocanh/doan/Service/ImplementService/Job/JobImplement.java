@@ -1,5 +1,6 @@
 package com.quocanh.doan.Service.ImplementService.Job;
 
+import ch.qos.logback.core.joran.spi.JoranException;
 import com.quocanh.doan.Exception.Company.CompanyExeptionHanlde;
 import com.quocanh.doan.Exception.Job.JobExcetionHandler;
 import com.quocanh.doan.Exception.UserNotFoundException;
@@ -19,6 +20,7 @@ import jakarta.validation.constraints.Size;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -84,10 +86,10 @@ public class JobImplement implements IJob {
             Company company = this.companyRepository.findByUser(user)
                     .orElseThrow(() -> new CompanyExeptionHanlde("Cannot find company"));
             logger.info("############## checking exist job type");
-            JobType jobType = this.jobTypeRepository.findByJobTypeName(request.getJobType().getJobTypeName())
+            JobType jobType = this.jobTypeRepository.findByJobTypeName(request.getType().getJobTypeName())
                     .orElseGet(
                             () -> {
-                                JobType jobType1 = new JobType(request.getJobType().getJobTypeName());
+                                JobType jobType1 = new JobType(request.getType().getJobTypeName());
                                 return this.jobTypeRepository.save(jobType1);
                             }
 
@@ -118,7 +120,7 @@ public class JobImplement implements IJob {
             Set<Skill> skills = manageSkill(request.getSkills());
 
             logger.info("############## create category");
-            Set<JobCategory> categories = manageCategory(request.getJobCategories());
+            Set<JobCategory> categories = manageCategory(request.getCategories());
 
             logger.info("############## checking exist address");
             System.out.println(request.getAddress());
@@ -170,6 +172,98 @@ public class JobImplement implements IJob {
     }
 
     @Override
+    public void updateJob(Long id,JobRequest request, UserPrincipal userPrincipal, BindingResult result) {
+        logger.info("############## service is working");
+
+        if (result.hasErrors()) {
+            logger.info("------------ validation error" + String.join(" ", createMessageError(result)));
+            throw new JobExcetionHandler(createMessageError(result)[0]);
+        }
+        try {
+            logger.info("############## checking exist user");
+
+            User user = this.userRepository.findById(userPrincipal.getId())
+                    .orElseThrow(() -> new UserNotFoundException("Cannot find user"));
+            logger.info("############## checking exist company");
+            Company company = this.companyRepository.findByUser(user)
+                    .orElseThrow(() -> new CompanyExeptionHanlde("Cannot find company"));
+            logger.info("############## checking exist job type");
+
+            Optional<Job> existingOpt = this.jobRepository.findByIdAndCompanyWithDetailsWithOptional(id, company.getId());
+            if(existingOpt.isEmpty()) {
+                throw new JobExcetionHandler("Job is not exist!!!!");
+            }
+
+            logger.info("############## checking exist job type");
+            JobType jobType = this.jobTypeRepository.findByJobTypeName(request.getType().getJobTypeName())
+                    .orElseGet(
+                            () -> {
+                                JobType jobType1 = new JobType(request.getType().getJobTypeName());
+                                return this.jobTypeRepository.save(jobType1);
+                            }
+
+                    );
+            logger.info("############## checking exist job position");
+            JobPosition jobPosition = this.jobPostionRepository.findByJobPositionName(request.getPosition().getJobPositionName())
+                    .orElseGet(
+                            () -> {
+                                JobPosition jobPosition1 = new JobPosition(request.getPosition().getJobPositionName());
+                                return this.jobPostionRepository.save(jobPosition1);
+                            }
+                    );
+
+            logger.info("############## checking exist address");
+            System.out.println(request.getAddress());
+
+            Address address = this.addressRepository.findByProvinceNameAndDistrictNameAndCommuneNameAndLngAndLat(
+                            request.getAddress().getProvinceName(),
+                            request.getAddress().getDistrictName(), request.getAddress().getCommuneName()
+                            , request.getAddress().getLng(),
+                            request.getAddress().getLat()
+                    )
+                    .orElseGet(
+                            () -> {
+                                Address address1 = new Address(
+                                        request.getAddress().getProvinceName(),
+                                        request.getAddress().getDistrictName(), request.getAddress().getCommuneName(),
+                                        request.getAddress().getFormattedAddressName()
+                                        , request.getAddress().getLng(),
+                                        request.getAddress().getLat()
+                                );
+                                return this.addressRepository.save(address1);
+                            }
+                    );
+            logger.info("############## create list skills");
+            Set<Skill> skills = manageSkill(request.getSkills());
+
+            logger.info("############## create category");
+            Set<JobCategory> categories = manageCategory(request.getCategories());
+
+            logger.info("############## create new job");
+
+            existingOpt.get().setExpiredDate(request.getExpiredDate());
+            existingOpt.get().setCompany(company);
+            existingOpt.get().setSalary(request.getSalary());
+            existingOpt.get().setSkills(skills);
+            existingOpt.get().setCategories(categories);
+            existingOpt.get().setDescription(request.getDescription());
+            existingOpt.get().setSalary(request.getSalary());
+            existingOpt.get().setTitle(request.getTitle());
+            existingOpt.get().setType(jobType);
+            existingOpt.get().setPosition(jobPosition);
+            existingOpt.get().setExperience(request.getExperience());
+            existingOpt.get().setAddress(address);
+            this.jobRepository.save(existingOpt.get());
+
+        }
+        catch (RuntimeException e) {
+            logger.info("-------------- having trouble service with " + e.getMessage());
+            throw new JobExcetionHandler(e.getMessage());
+        }
+
+    }
+
+    @Override
     public List<Job> getAllJob() {
         logger.info("############## getJobService is working");
         try {
@@ -192,6 +286,28 @@ public class JobImplement implements IJob {
             System.out.println(job.getCompany());
             logger.info("############## ok");
             return job;
+        } catch (Exception e) {
+            logger.info("Error occurred during 'Checking database'.");
+            throw new JobExcetionHandler("Error occurred during 'Checking database'.");
+        }
+    }
+    @Override
+    public JobResponse getByIdForCompany(Long id, Long idUser) {
+        try {
+            logger.info("############## getByIdForCompany is working");
+            User user = this.userRepository.findById(idUser)
+                    .orElseThrow(() -> new UserNotFoundException("Cannot find user"));
+            logger.info("############## checking exist company");
+            Company company = this.companyRepository.findByUser(user)
+                    .orElseThrow(() -> new CompanyExeptionHanlde("Cannot find company"));
+            logger.info("############## get job");
+            Job job = jobRepository.findByIdAndCompanyWithDetails(id, company.getId());
+            JobResponse jobResponses = JobMapper.INSTANCE.jobToJobResponse(job);
+            if (jobResponses == null) {
+                throw new JobExcetionHandler("Unable to find job with id" + id);
+            }
+            logger.info("############## ok");
+            return jobResponses;
         } catch (Exception e) {
             logger.info("Error occurred during 'Checking database'.");
             throw new JobExcetionHandler("Error occurred during 'Checking database'.");
@@ -240,6 +356,17 @@ public class JobImplement implements IJob {
         );
     }
 
+    @Override
+    public void DeleteById(Long id) {
+        logger.info("############## deleted job service is working");
+        try {
+            this.jobRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException ex) {
+            logger.error(ex.getMessage());
+            throw new JobExcetionHandler("Cannot delete this job!!!");
+        }
+    }
+
     private Set<Skill> manageSkill(@NotNull(message = "Skill requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<SkillRequest> requestSkill) {
         Set<String> nameSkillsRequest = requestSkill.stream().map(SkillRequest::getNameSkill)
                 .collect(Collectors.toSet());
@@ -269,7 +396,7 @@ public class JobImplement implements IJob {
     }
 
     private Set<JobCategory> manageCategory(@NotNull(message = "Category requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<JobCategoryRequest> requestCategory) {
-        Set<String> nameJobCategoryRequest = requestCategory.stream().map(JobCategoryRequest::getJobNameCategory)
+        Set<String> nameJobCategoryRequest = requestCategory.stream().map(JobCategoryRequest::getJobCategoryName)
                 .collect(Collectors.toSet());
         System.out.println(requestCategory);
         System.out.println(nameJobCategoryRequest);
@@ -280,7 +407,7 @@ public class JobImplement implements IJob {
 
 
         Set<JobCategory> newJobCategories = requestCategory.stream()
-                .map(JobCategoryRequest::getJobNameCategory)
+                .map(JobCategoryRequest::getJobCategoryName)
                 .filter(name -> !mapJobCategory.containsKey(name))
                 .map(JobCategory::new)
                 .collect(Collectors.toSet());
@@ -288,7 +415,7 @@ public class JobImplement implements IJob {
             this.jobCategoryRepository.saveAll(newJobCategories);
         }
         Set<JobCategory> jobCategories = requestCategory.stream()
-                .map(JobCategoryRequest::getJobNameCategory)
+                .map(JobCategoryRequest::getJobCategoryName)
                 .map(mapJobCategory::get)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());

@@ -1,6 +1,10 @@
 spring:
   application:
     name: doan
+  jackson:
+    date-format: yyyy-MM-dd'T'hh:mm:ss
+    serialization:
+      write-dates-as-timestamps: false
   jpa:
     hibernate:
       ddl-auto: update
@@ -9,6 +13,7 @@ spring:
       hibernate:
         jdbc:
           batch_size: 10
+    open-in-view: true
   datasource:
     url: jdbc:mysql://localhost/doan
     username: root
@@ -42,6 +47,11 @@ spring:
 logging:
   level:
     org:
+      hibernate:
+        sql: DEBUG
+        type:
+          descriptor:
+            sql: trace
       springframework:
         security: DEBUG
         cache: info
