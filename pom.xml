@@ -126,6 +126,22 @@
             <scope>provided</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.hibernate.search/hibernate-search-mapper-orm -->
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-mapper-orm</artifactId>
+            <version>7.0.0.Final</version>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/org.hibernate.search/hibernate-search-backend-lucene -->
+        <dependency>
+            <groupId>org.hibernate.search</groupId>
+            <artifactId>hibernate-search-backend-lucene</artifactId>
+            <version>7.0.0.Final</version>
+        </dependency>
+
+
     </dependencies>
     <build>
         <plugins>
