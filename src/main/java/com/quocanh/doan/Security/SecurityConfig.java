@@ -85,7 +85,7 @@
                     .httpBasic(AbstractHttpConfigurer::disable)
                     .authorizeHttpRequests(
                             authorize -> authorize
-                                    .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                                    .requestMatchers("/api/auth/**","/api/clientController/**", "/oauth2/**").permitAll()
                                     .anyRequest().authenticated()
                     )
                     .oauth2Login(

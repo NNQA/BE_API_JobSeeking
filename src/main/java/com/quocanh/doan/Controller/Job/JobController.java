@@ -39,6 +39,7 @@ public class JobController {
     @PreAuthorize("hasRole('ROLE_SUPPLIER')")
     public ResponseEntity<?> addNewJob(@Valid @RequestBody JobRequest request, BindingResult bindingResult) {
         logger.info("############## /api/job/addNewPost started");
+        System.out.println(request);
         UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         jobImplement.addNewJob(request,userPrincipal, bindingResult);
 
@@ -105,4 +106,9 @@ public class JobController {
         return ResponseEntity.ok().body(HttpStatus.OK);
     }
 
+
+    @GetMapping("/searchJob")
+    public ResponseEntity<?> searchJob() {
+        return ResponseEntity.ok(HttpStatus.OK);
+    }
 }

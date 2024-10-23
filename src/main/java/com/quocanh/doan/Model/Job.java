@@ -10,6 +10,11 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -19,6 +24,7 @@ import java.util.Set;
 @Data
 @Table(name = "Job")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "company" })
+@Indexed
 public class Job {
     private static final Integer STATUS_INACTIVE = 0;
     private static final Integer STATUS_ACTIVE = 1;
@@ -26,8 +32,10 @@ public class Job {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @JoinColumn(name = "title")
     @NotNull(message = "Title must be provided")
+    @FullTextField
     private String title;
 
     @JoinColumn(name = "description")
@@ -43,6 +51,8 @@ public class Job {
     @NotNull(message = "Address must be provided.")
     @JsonIgnore
     @ToString.Exclude
+    @IndexedEmbedded(includePaths = {"provinceName"})
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.NO)
     private Address address;
 
 

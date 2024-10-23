@@ -11,6 +11,12 @@ spring:
     show-sql: true
     properties:
       hibernate:
+        search:
+          backend:
+            lucene_version: LUCENE_8_1_1
+            directory:
+              type: local-filesystem  # Sử dụng hệ thống tập tin để lưu chỉ mục
+              root: ./lucene-data
         jdbc:
           batch_size: 10
     open-in-view: true

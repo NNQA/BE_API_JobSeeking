@@ -14,7 +14,6 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 public class JobPositionRequest {
-    @Pattern(regexp = "^[A-Za-z-, \\.\\/\\(\\)]{2,}$", message="Job type name is not valid.")
     @NotNull(message = "Job type name must be provided")
     private String jobPositionName;
 }

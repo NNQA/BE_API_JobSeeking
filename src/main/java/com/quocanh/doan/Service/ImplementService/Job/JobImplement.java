@@ -116,11 +116,7 @@ public class JobImplement implements IJob {
                 }
             }
 
-            logger.info("############## create list skills");
-            Set<Skill> skills = manageSkill(request.getSkills());
 
-            logger.info("############## create category");
-            Set<JobCategory> categories = manageCategory(request.getCategories());
 
             logger.info("############## checking exist address");
             System.out.println(request.getAddress());
@@ -146,6 +142,13 @@ public class JobImplement implements IJob {
 
             logger.info("############## create new job");
             Job newJob = new Job();
+
+            logger.info("############## create list skills");
+            Set<Skill> skills = manageSkill(request.getSkills(),newJob);
+
+            logger.info("############## create category");
+            Set<JobCategory> categories = manageCategory(request.getCategories(), newJob);
+
             newJob.setExpiredDate(request.getExpiredDate());
             newJob.setCompany(company);
             newJob.setSalary(request.getSalary());
@@ -234,10 +237,12 @@ public class JobImplement implements IJob {
                             }
                     );
             logger.info("############## create list skills");
-            Set<Skill> skills = manageSkill(request.getSkills());
+            Set<Skill> skills = manageSkill(request.getSkills(), existingOpt.get());
+
+
 
             logger.info("############## create category");
-            Set<JobCategory> categories = manageCategory(request.getCategories());
+            Set<JobCategory> categories = manageCategory(request.getCategories(), existingOpt.get());
 
             logger.info("############## create new job");
 
@@ -367,7 +372,7 @@ public class JobImplement implements IJob {
         }
     }
 
-    private Set<Skill> manageSkill(@NotNull(message = "Skill requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<SkillRequest> requestSkill) {
+    private Set<Skill> manageSkill(@NotNull(message = "Skill requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<SkillRequest> requestSkill, Job job) {
         Set<String> nameSkillsRequest = requestSkill.stream().map(SkillRequest::getNameSkill)
                 .collect(Collectors.toSet());
 
@@ -392,14 +397,26 @@ public class JobImplement implements IJob {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         skills.addAll(newSkills);
+        Set<Skill> currentSkills = job.getSkills();
+
+        Set<Skill> skillsToRemove = currentSkills.stream()
+                .filter(skill -> !skills.contains(skill))
+                .collect(Collectors.toSet());
+
+        skillsToRemove.forEach(skill -> {
+            job.getSkills().remove(skill);
+            skill.getListJobs().remove(job);
+        });
+        skills.forEach(skill -> {
+            skill.getListJobs().add(job);
+        });
         return skills;
     }
 
-    private Set<JobCategory> manageCategory(@NotNull(message = "Category requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<JobCategoryRequest> requestCategory) {
+    private Set<JobCategory> manageCategory(@NotNull(message = "Category requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<JobCategoryRequest> requestCategory, Job job) {
         Set<String> nameJobCategoryRequest = requestCategory.stream().map(JobCategoryRequest::getJobCategoryName)
                 .collect(Collectors.toSet());
-        System.out.println(requestCategory);
-        System.out.println(nameJobCategoryRequest);
+
         List<JobCategory> existingJobCategory = this.jobCategoryRepository.findByJobCategoryName(nameJobCategoryRequest);
         Map<String, JobCategory> mapJobCategory = existingJobCategory.stream().collect(
                 Collectors.toMap(JobCategory::getJobCategoryName, jobCategory -> jobCategory)
@@ -420,6 +437,19 @@ public class JobImplement implements IJob {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
         jobCategories.addAll(newJobCategories);
+        Set<JobCategory> currentCategory = job.getCategories();
+
+        Set<JobCategory> categoriesToRemove = currentCategory.stream()
+                .filter(skill -> !jobCategories.contains(skill))
+                .collect(Collectors.toSet());
+
+        categoriesToRemove.forEach(category -> {
+            job.getCategories().remove(category);
+            category.getListJob().remove(job);
+        });
+        jobCategories.forEach(jobCategory -> {
+            jobCategory.getListJob().add(job);
+        });
         return jobCategories;
     }
 

@@ -32,7 +32,6 @@ public class JobPosition {
     private Long id;
 
     @Column(name="job_position_name")
-    @Pattern(regexp = "^[A-Za-z-, \\.\\/\\(\\)]{2,}$", message="Job type name is not valid.")
     @NotNull(message = "Job type name must be provided")
     private String jobPositionName;
 
