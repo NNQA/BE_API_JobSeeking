@@ -35,3 +35,8 @@ build/
 ### enviroment
 .env
 
+
+
+### lucene-data
+/lucene-data
+
