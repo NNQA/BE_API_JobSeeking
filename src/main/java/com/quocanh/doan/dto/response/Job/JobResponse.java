@@ -1,11 +1,10 @@
 package com.quocanh.doan.dto.response.Job;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.quocanh.doan.Model.Address;
 import com.quocanh.doan.Model.JobCategory;
 import com.quocanh.doan.Model.Skill;
-import com.quocanh.doan.dto.request.AddressRequest;
 import com.quocanh.doan.dto.response.Address.AddressResponse;
+import com.quocanh.doan.dto.response.CompanyResponse.CompanyResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -25,7 +24,7 @@ public class JobResponse {
     JobTypeResponse type;
     List<Skill> skills;
     List<JobCategory> categories;
-    String salary;
+    SalaryResponse salary;
     String experience;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     LocalDateTime expiredDate;
@@ -34,4 +33,5 @@ public class JobResponse {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
     LocalDateTime updatedDateTime;
     AddressResponse address;
+    CompanyResponse company;
 }

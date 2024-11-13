@@ -27,7 +27,8 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     Optional<Job> findByIdAndCompanyWithDetailsWithOptional(@Param("jobId") Long jobId, @Param("companyId") Long companyId);
 
     Job findByIdAndCompany(Long jobId, Company company);
-
+    @Query("SELECT j FROM Job j WHERE j.title LIKE %:title%")
+    Optional<Job> findByTitleContaining(@Param("title") String title);
 
     Optional<Job> findByTitleAndCompanyAndTypeAndPosition(String title, Company company, JobType type, JobPosition position);
 

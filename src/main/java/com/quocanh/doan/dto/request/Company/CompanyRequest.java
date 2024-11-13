@@ -18,7 +18,6 @@ public class CompanyRequest {
     private String phone;
 
     @NotNull(message = "Company name must be provided.")
-    @Pattern(regexp = "^[a-zA-Z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸýỵỷỹ\\s]{2,}$", message="Company name is not valid.")
     private String nameCompany;
 
     @NotNull(message = "Address must be provided.")

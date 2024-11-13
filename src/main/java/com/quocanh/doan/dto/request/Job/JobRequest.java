@@ -29,7 +29,7 @@ public class JobRequest {
     private JobTypeRequest type;
 
     @NotNull(message = "Salary must be provided")
-    private String salary;
+    private SalaryRequest salary;
 
     @NotNull(message = "ExpiredDate must be provided")
     private LocalDateTime expiredDate;
