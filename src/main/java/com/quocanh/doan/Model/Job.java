@@ -38,12 +38,14 @@ public class Job {
     @FullTextField
     private String title;
 
-    @JoinColumn(name = "description")
+    @Column(columnDefinition = "TEXT")
     @NotNull(message = "Description must be provided")
+    @Lob
     private String description;
 
     @JoinColumn(name = "experience")
     @NotNull(message = "Experience must be provided")
+    @FullTextField
     private String experience;
 
     @ManyToOne(cascade = CascadeType.REFRESH, fetch = FetchType.LAZY)
@@ -61,6 +63,7 @@ public class Job {
     @NotNull(message = "Position must be provided")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @IndexedEmbedded
     private JobPosition position;
 
     @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.LAZY)
@@ -70,9 +73,19 @@ public class Job {
     @EqualsAndHashCode.Exclude
     private Company company;
 
+
+    @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.LAZY)
+    @JoinColumn(name = "salaryType")
+    @NotNull(message = "Salary must be provided")
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    @IndexedEmbedded
+    private Salary salary;
+
     @ManyToOne(cascade = {CascadeType.REFRESH}, fetch = FetchType.LAZY)
     @JoinColumn(name = "type")
     @NotNull(message = "JobType must be provided")
+    @IndexedEmbedded
     private JobType type;
 
 
@@ -97,11 +110,9 @@ public class Job {
     @JsonIgnore
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @IndexedEmbedded
     private Set<JobCategory> categories = new HashSet<>();
 
-    @JoinColumn(name = "salary")
-    @NotNull(message = "Salary must be provided")
-    private String salary;
 
     @JoinColumn(name = "expiredDate")
     @NotNull(message = "ExpiredDate must be provided")

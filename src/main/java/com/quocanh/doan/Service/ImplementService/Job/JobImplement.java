@@ -47,11 +47,13 @@ public class JobImplement implements IJob {
     private final SkillRepository skillRepository;
 
     private final AddressRepository addressRepository;
+    private final SalaryRepository salaryRepository;
 
     public JobImplement(JobRepository jobRepository, CompanyRepository companyRepository,
                         JobTypeRepository jobTypeRepository, JobPostionRepository jobPostionRepository,
                         UserRepository userRepository, SkillRepository skillRepository,
-                        JobCategoryRepository jobCategoryRepository, AddressRepository addressRepository) {
+                        JobCategoryRepository jobCategoryRepository, AddressRepository addressRepository,
+                        SalaryRepository salaryRepository) {
         this.jobRepository = jobRepository;
         this.jobTypeRepository = jobTypeRepository;
         this.jobPostionRepository = jobPostionRepository;
@@ -60,6 +62,7 @@ public class JobImplement implements IJob {
         this.skillRepository = skillRepository;
         this.jobCategoryRepository = jobCategoryRepository;
         this.addressRepository = addressRepository;
+        this.salaryRepository = salaryRepository;
     }
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -151,16 +154,24 @@ public class JobImplement implements IJob {
 
             newJob.setExpiredDate(request.getExpiredDate());
             newJob.setCompany(company);
-            newJob.setSalary(request.getSalary());
+
             newJob.setSkills(skills);
             newJob.setCategories(categories);
             newJob.setDescription(request.getDescription());
-            newJob.setSalary(request.getSalary());
+
             newJob.setTitle(request.getTitle());
             newJob.setType(jobType);
             newJob.setPosition(jobPosition);
             newJob.setExperience(request.getExperience());
             newJob.setAddress(address);
+
+            Salary salary = new Salary();
+            salary.setNumberSort(request.getSalary().getNumberSort());
+            salary.setValue(request.getSalary().getValue());
+
+            salaryRepository.save(salary);
+
+            newJob.setSalary(salary);
 
             logger.info("############## store job to database");
 
@@ -248,16 +259,24 @@ public class JobImplement implements IJob {
 
             existingOpt.get().setExpiredDate(request.getExpiredDate());
             existingOpt.get().setCompany(company);
-            existingOpt.get().setSalary(request.getSalary());
             existingOpt.get().setSkills(skills);
             existingOpt.get().setCategories(categories);
             existingOpt.get().setDescription(request.getDescription());
-            existingOpt.get().setSalary(request.getSalary());
+
             existingOpt.get().setTitle(request.getTitle());
             existingOpt.get().setType(jobType);
             existingOpt.get().setPosition(jobPosition);
             existingOpt.get().setExperience(request.getExperience());
             existingOpt.get().setAddress(address);
+
+
+            Salary salary = new Salary();
+            salary.setNumberSort(request.getSalary().getNumberSort());
+            salary.setValue(request.getSalary().getValue());
+
+            salaryRepository.save(salary);
+
+            existingOpt.get().setSalary(salary);
             this.jobRepository.save(existingOpt.get());
 
         }
@@ -416,7 +435,7 @@ public class JobImplement implements IJob {
     private Set<JobCategory> manageCategory(@NotNull(message = "Category requests must be provided") @Size(min = 1, max = 10, message = "There must be between 1 and 10 skills") Set<JobCategoryRequest> requestCategory, Job job) {
         Set<String> nameJobCategoryRequest = requestCategory.stream().map(JobCategoryRequest::getJobCategoryName)
                 .collect(Collectors.toSet());
-
+        System.out.println(nameJobCategoryRequest);
         List<JobCategory> existingJobCategory = this.jobCategoryRepository.findByJobCategoryName(nameJobCategoryRequest);
         Map<String, JobCategory> mapJobCategory = existingJobCategory.stream().collect(
                 Collectors.toMap(JobCategory::getJobCategoryName, jobCategory -> jobCategory)
@@ -428,14 +447,17 @@ public class JobImplement implements IJob {
                 .filter(name -> !mapJobCategory.containsKey(name))
                 .map(JobCategory::new)
                 .collect(Collectors.toSet());
+        System.out.println(newJobCategories);
         if (!newJobCategories.isEmpty()) {
             this.jobCategoryRepository.saveAll(newJobCategories);
         }
         Set<JobCategory> jobCategories = requestCategory.stream()
                 .map(JobCategoryRequest::getJobCategoryName)
-                .map(mapJobCategory::get)
-                .filter(Objects::nonNull)
+                .map(name -> Optional.ofNullable(mapJobCategory.get(name)))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .collect(Collectors.toSet());
+
         jobCategories.addAll(newJobCategories);
         Set<JobCategory> currentCategory = job.getCategories();
 

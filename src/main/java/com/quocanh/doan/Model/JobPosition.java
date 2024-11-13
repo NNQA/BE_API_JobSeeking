@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class JobPosition {
 
     @Column(name="job_position_name")
     @NotNull(message = "Job type name must be provided")
+    @FullTextField
     private String jobPositionName;
 
     @Max(1)

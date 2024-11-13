@@ -10,6 +10,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -34,6 +35,7 @@ public class JobType {
     @Column(name="job_type_name")
     @Pattern(regexp = "^[A-Za-z-, \\.\\/\\(\\)]{2,}$", message="Job type name is not valid.")
     @NotNull(message = "Job type name must be provided")
+    @FullTextField
     private String jobTypeName;
 
     @Max(1)
