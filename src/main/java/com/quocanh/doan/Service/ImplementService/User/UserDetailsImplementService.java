@@ -34,7 +34,9 @@ public class UserDetailsImplementService implements UserDetailsService {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("User not found with " + id)
         );
-
+        if(!user.isCheckCode()) {
+            throw new CheckCodeException("User not verified. Please check your mail for the verification code");
+        }
         return UserPrincipal.build(user);
     }
 

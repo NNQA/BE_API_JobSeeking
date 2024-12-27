@@ -15,14 +15,25 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private Long id;
     private String email;
     private String password;
+    private boolean isNewUser;
+    private String name;
+    private String phone;
+    private String university;
+    private String experiencelevel;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
-    public UserPrincipal(Long id, String email, String password, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(Long id, String email, String password, Collection<? extends GrantedAuthority> authorities,
+                         boolean isNewUser, String university, String phone, String name, String experiencelevel ) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.authorities = authorities;
+        this.isNewUser = isNewUser;
+        this.university = university;
+        this.name = name;
+        this.phone = phone;
+        this.experiencelevel = experiencelevel;
     }
 
     public static UserPrincipal build(User user) {
@@ -34,7 +45,12 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 user.getId(),
                 user.getEmail(),
                 user.getPassword(),
-                authorityList
+                authorityList,
+                user.isNewUser(),
+                user.getUniversity(),
+                user.getPhone(),
+                user.getName(),
+                user.getExperiencelevel()
         );
     }
 
@@ -61,16 +77,27 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public String getName() {
-        return null;
+        return name;
     }
     public Long getId() {
         return id;
     }
 
+    public boolean getIsNewUser() {
+        return isNewUser;
+    }
     public String getEmail() {
         return email;
     }
-
+    public String getExperiencelevel() {
+        return experiencelevel;
+    }
+    public String getPhone() {
+        return phone;
+    }
+    public String getUniversity() {
+        return university;
+    }
     @Override
     public String getPassword() {
         return password;
@@ -78,7 +105,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public String getUsername() {
-        return email;
+        return name;
     }
 
     @Override
@@ -101,9 +128,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         return true;
     }
 
-
     public void setAttributes(Map<String, Object> attributes) {
         this.attributes = attributes;
     }
-
 }

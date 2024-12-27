@@ -11,7 +11,11 @@ import com.quocanh.doan.Repository.RoleRepository;
 import com.quocanh.doan.Repository.UserRepository;
 import com.quocanh.doan.Service.ImplementService.Email.EmailImplementService;
 import com.quocanh.doan.Service.Interface.UserIntef.IUserService;
+import com.quocanh.doan.dto.request.UserUpdate;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,6 +31,8 @@ public class UserService implements IUserService {
     private final EmailImplementService emailImplementService;
 
     private final RoleRepository roleRepository;
+
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     public UserService(UserRepository userRepository, RoleRepository roleRepository,
                        PasswordEncoder encoder, EmailImplementService emailImplementService) {
         this.userRepository = userRepository;
@@ -62,7 +68,7 @@ public class UserService implements IUserService {
         user.setPassword(encoder.encode(signupRequest.getPassword()));
         user.setProvider(AuthProvider.local);
 
-        user.setCheckCode(true);
+        user.setCheckCode(false);
         Set<Role> roles = new HashSet<>();
         Role supplierRole = roleRepository.findByName(ERole.ROLE_USER)
                 .orElseThrow(() -> new SignupException("Error: Role is not found."));
@@ -70,8 +76,9 @@ public class UserService implements IUserService {
         user.setRoles(roles);
         int code = random.nextInt(500);
         user.setCodeConfirm(String.valueOf(code));
+        user.setNewUser(true);
 
-//        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
+        emailImplementService.sendMailRegister(signupRequest.getEmail(), String.valueOf(code));
         this.save(user);
     }
     @Override
@@ -101,5 +108,24 @@ public class UserService implements IUserService {
         roles.add(userRole);
         user.setRoles(roles);
         return this.save(user);
+    }
+
+    @Override
+    public void updateNewUser(UserPrincipal userPrincipal,UserUpdate userUpdate) {
+        User user = userRepository.findById(userPrincipal.getId()).orElseThrow(
+                () -> new UserNotFoundException("User not found with " + userPrincipal.getId())
+        );
+
+        try {
+            user.setUniversity(userUpdate.getUniversity());
+            user.setExperiencelevel(userUpdate.getExperiencelevel());
+            user.setNewUser(false);
+            user.setPhone(userUpdate.getPhone());
+            user.setName(userUpdate.getName());
+             this.userRepository.save(user);
+        } catch (DataAccessException ex) {
+            logger.error(ex.getMessage());
+            throw new UserNotFoundException(ex.getMessage());
+        }
     }
 }
