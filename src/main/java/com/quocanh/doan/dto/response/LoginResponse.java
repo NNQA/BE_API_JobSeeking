@@ -2,6 +2,9 @@ package com.quocanh.doan.dto.response;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.Collection;
 
 @Data
 @NoArgsConstructor
@@ -11,4 +14,6 @@ import lombok.experimental.FieldDefaults;
 public class LoginResponse {
     String accessToken;
     String refreshToken;
+    boolean isNewUser;
+    Collection<? extends GrantedAuthority> authorities;
 }

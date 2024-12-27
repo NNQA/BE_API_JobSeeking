@@ -1,6 +1,7 @@
 package com.quocanh.doan.dto.response;
 
 
+import jakarta.persistence.Column;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,4 +18,8 @@ public class UserResponse {
     String name;
     String email;
     Collection<? extends GrantedAuthority> authorities;
+    boolean isNewUser;
+    private String phone;
+    private String university;
+    String experiencelevel;
 }

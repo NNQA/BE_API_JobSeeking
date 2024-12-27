@@ -57,13 +57,17 @@ public class AuthenticationController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
             String accessToken = tokenProvider.generateToken(authentication);
             Long refreshToken = userRefreshTokenService.saveTokenRequest(authentication);
 
             return ResponseEntity.ok().body(
                     new LoginResponse(
                             accessToken,
-                            String.valueOf(refreshToken)
+                            String.valueOf(refreshToken),
+                            userPrincipal.getIsNewUser(),
+                            userPrincipal.getAuthorities()
                     )
             );
         } catch (AuthenticationException exception) {
