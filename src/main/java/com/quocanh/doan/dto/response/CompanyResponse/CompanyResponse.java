@@ -1,9 +1,12 @@
 package com.quocanh.doan.dto.response.CompanyResponse;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.quocanh.doan.dto.response.Address.AddressResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -11,8 +14,17 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CompanyResponse {
-    private String phone;
+    String phone;
+    String nameCompany;
+    AddressResponse address;
+    String linkComp;
+    String numberEmp;
+    String businessType;
+    String description;
+    String businessRegistrationNumber;
 
-    private String nameCompany;
-    private AddressResponse address;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
+    LocalDateTime createdDateTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'hh:mm:ss")
+    LocalDateTime updatedDateTime;
 }
