@@ -1,6 +1,7 @@
 package com.quocanh.doan.dto.request.Company;
 
 import com.quocanh.doan.dto.request.AddressRequest;
+import jakarta.persistence.JoinColumn;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -22,4 +23,14 @@ public class CompanyRequest {
 
     @NotNull(message = "Address must be provided.")
     private AddressRequest address;
+
+    private String linkComp;
+
+    private String numberEmp;
+
+    private String businessType;
+
+    private String description;
+
+    private String businessRegistrationNumber;
 }

@@ -37,11 +37,28 @@ public class Company {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-    @CreationTimestamp
-    private LocalDateTime createdDateTime;
+
+    @JoinColumn(name = "link",  nullable = false)
+    private String linkComp;
+
+    @JoinColumn(name = "numberEmp",  nullable = false)
+    private String numberEmp;
+
+    @JoinColumn(name = "businessType", nullable = false)
+    private String businessType;
+
+    @Column(columnDefinition = "TEXT")
+    @Lob
+    private String description;
+
+    @JoinColumn(name = "businessRegistrationNumber", nullable = false)
+    private String businessRegistrationNumber;
 
     @UpdateTimestamp
     private LocalDateTime updatedDateTime;
+
+    @CreationTimestamp
+    private LocalDateTime createdDateTime;
 
     public Company() {}
     public Company(User user, Address address, String nameCompany, String phone) {
