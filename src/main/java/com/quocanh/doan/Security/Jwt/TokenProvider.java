@@ -5,8 +5,6 @@ import com.quocanh.doan.Security.AppProperties;
 import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import io.micrometer.observation.transport.ResponseContext;
-import org.apache.coyote.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseCookie;
@@ -36,7 +34,6 @@ public class TokenProvider {
         ResponseCookie responseCookie = ResponseCookie.from(COOKIE_JWT,null).path("/").build();
         return responseCookie;
     }
-
 
     public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
@@ -96,6 +93,4 @@ public class TokenProvider {
                 .signWith(key(),SignatureAlgorithm.HS512)
                 .compact();
     }
-
-
 }
