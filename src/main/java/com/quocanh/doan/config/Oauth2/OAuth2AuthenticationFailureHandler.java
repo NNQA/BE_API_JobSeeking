@@ -1,6 +1,6 @@
-package com.quocanh.doan.Security.Oauth2;
+package com.quocanh.doan.config.Oauth2;
 
-import com.quocanh.doan.Security.Oauth2.HttpCookieOauth2AuthorizationRequestRepository;
+import com.quocanh.doan.config.Oauth2.HttpCookieOauth2AuthorizationRequestRepository;
 import com.quocanh.doan.Utils.CookieUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

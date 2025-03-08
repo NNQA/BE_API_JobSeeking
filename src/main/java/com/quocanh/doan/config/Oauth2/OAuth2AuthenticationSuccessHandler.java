@@ -1,8 +1,8 @@
-package com.quocanh.doan.Security.Oauth2;
+package com.quocanh.doan.config.Oauth2;
 
 import com.quocanh.doan.Exception.BadRequetException;
-import com.quocanh.doan.Security.AppProperties;
-import com.quocanh.doan.Security.Jwt.TokenProvider;
+import com.quocanh.doan.config.AppProperties;
+import com.quocanh.doan.config.Jwt.TokenProvider;
 import com.quocanh.doan.Service.ImplementService.User.UserRefreshTokenService;
 import com.quocanh.doan.Utils.CookieUtils;
 import jakarta.servlet.ServletException;

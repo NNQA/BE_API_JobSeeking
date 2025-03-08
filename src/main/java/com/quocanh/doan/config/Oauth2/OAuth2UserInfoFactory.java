@@ -1,8 +1,8 @@
-package com.quocanh.doan.Security.Oauth2;
+package com.quocanh.doan.config.Oauth2;
 
 import com.quocanh.doan.Exception.OAuth2AuthenticationProcessingException;
 import com.quocanh.doan.Model.AuthProvider;
-import com.quocanh.doan.Security.Oauth2.Service.GoogleOAuth2ServiceUserInfo;
+import com.quocanh.doan.config.Oauth2.Service.GoogleOAuth2ServiceUserInfo;
 import org.springframework.security.core.parameters.P;
 
 import java.util.Map;

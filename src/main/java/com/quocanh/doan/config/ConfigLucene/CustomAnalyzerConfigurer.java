@@ -1,4 +1,4 @@
-package com.quocanh.doan.Security.ConfigLucene;
+package com.quocanh.doan.config.ConfigLucene;
 
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
 import org.apache.lucene.analysis.core.StopFilterFactory;

@@ -1,4 +1,4 @@
-package com.quocanh.doan.Security.ConfigLucene;
+package com.quocanh.doan.config.ConfigLucene;
 
 public class AnalysisCustomITAnalysisConfigurer {
 }

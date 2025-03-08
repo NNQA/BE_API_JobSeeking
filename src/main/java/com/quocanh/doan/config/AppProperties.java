@@ -1,4 +1,4 @@
-package com.quocanh.doan.Security;
+package com.quocanh.doan.config;
 
 import lombok.Getter;
 import org.springframework.boot.context.properties.ConfigurationProperties;

@@ -1,13 +1,13 @@
-    package com.quocanh.doan.Security;
+    package com.quocanh.doan.config;
 
 
-    import com.quocanh.doan.Security.CustomAuthenticationProvider.ExpandDaoAuthenticationProvider;
-    import com.quocanh.doan.Security.Jwt.AuthTokenFilter;
-    import com.quocanh.doan.Security.Oauth2.HttpCookieOauth2AuthorizationRequestRepository;
-    import com.quocanh.doan.Security.Oauth2.ImplementOauth2UserService;
-    import com.quocanh.doan.Security.Oauth2.OAuth2AuthenticationSuccessHandler;
-    import com.quocanh.doan.Security.Oauth2.RestAuthEntryPoint;
-    import com.quocanh.doan.Security.Oauth2.OAuth2AuthenticationFailureHandler;
+    import com.quocanh.doan.config.CustomAuthenticationProvider.ExpandDaoAuthenticationProvider;
+    import com.quocanh.doan.config.Jwt.AuthTokenFilter;
+    import com.quocanh.doan.config.Oauth2.HttpCookieOauth2AuthorizationRequestRepository;
+    import com.quocanh.doan.config.Oauth2.ImplementOauth2UserService;
+    import com.quocanh.doan.config.Oauth2.OAuth2AuthenticationSuccessHandler;
+    import com.quocanh.doan.config.Oauth2.RestAuthEntryPoint;
+    import com.quocanh.doan.config.Oauth2.OAuth2AuthenticationFailureHandler;
     import com.quocanh.doan.Service.ImplementService.User.UserDetailsImplementService;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;

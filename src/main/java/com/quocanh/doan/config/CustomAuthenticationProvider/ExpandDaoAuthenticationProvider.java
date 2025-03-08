@@ -1,4 +1,4 @@
-package com.quocanh.doan.Security.CustomAuthenticationProvider;
+package com.quocanh.doan.config.CustomAuthenticationProvider;
 
 import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
 import org.springframework.security.authentication.BadCredentialsException;

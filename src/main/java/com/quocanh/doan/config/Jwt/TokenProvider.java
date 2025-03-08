@@ -1,7 +1,7 @@
-package com.quocanh.doan.Security.Jwt;
+package com.quocanh.doan.config.Jwt;
 
 
-import com.quocanh.doan.Security.AppProperties;
+import com.quocanh.doan.config.AppProperties;
 import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

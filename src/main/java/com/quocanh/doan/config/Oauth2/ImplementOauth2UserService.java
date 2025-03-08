@@ -1,4 +1,4 @@
-package com.quocanh.doan.Security.Oauth2;
+package com.quocanh.doan.config.Oauth2;
 
 import com.quocanh.doan.Exception.OAuth2AuthenticationProcessingException;
 import com.quocanh.doan.Model.User;

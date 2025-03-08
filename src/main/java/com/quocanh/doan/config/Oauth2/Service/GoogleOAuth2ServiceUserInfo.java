@@ -1,6 +1,6 @@
-package com.quocanh.doan.Security.Oauth2.Service;
+package com.quocanh.doan.config.Oauth2.Service;
 
-import com.quocanh.doan.Security.Oauth2.OAuth2UserInfo;
+import com.quocanh.doan.config.Oauth2.OAuth2UserInfo;
 
 import java.util.Map;
 

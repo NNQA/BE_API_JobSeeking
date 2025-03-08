@@ -1,4 +1,4 @@
-package com.quocanh.doan.Security;
+package com.quocanh.doan.config;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
