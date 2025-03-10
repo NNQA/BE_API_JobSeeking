@@ -9,17 +9,11 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
-    properties:
-      hibernate:
-        search:
-          backend:
-            lucene_version: LUCENE_8_1_1
-            directory:
-              type: local-filesystem  # Sử dụng hệ thống tập tin để lưu chỉ mục
-              root: ./lucene-data
-        jdbc:
-          batch_size: 10
-    open-in-view: true
+  elasticsearch:
+
+    password: 123
+    uris: http://localhost:9200
+    username: elastic
   datasource:
     url: jdbc:mysql://localhost/doan
     username: root
@@ -69,6 +63,15 @@ app:
   oauth2:
     authorizedRedirectUris:
       - http://localhost:3000/
+
+
+indexer:
+  batch_size: 50
+  threads: 4
+  transaction_timeout: 3600  # in seconds
+  optimize_after_purge: true
+  purge_all_on_start: false
+
 
 
 #//pith klrm dhhd edhm
