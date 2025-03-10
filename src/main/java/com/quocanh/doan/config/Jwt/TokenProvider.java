@@ -17,17 +17,13 @@ import java.util.Date;
 @Service
 public class TokenProvider {
     private static final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
-
     private final AppProperties appProperties;
-
     public TokenProvider(AppProperties appProperties) {
         this.appProperties = appProperties;
     }
     private final String COOKIE_JWT = "cookie_authenticated";
-
     public ResponseCookie generateJwtCookie(Authentication authentication) {
         String jwt = generateToken(authentication);
-
         return ResponseCookie.from(COOKIE_JWT, jwt).path("/").maxAge(24 * 60 * 60).httpOnly(true).build();
     }
     public ResponseCookie getCleanJwtCookie() {
@@ -40,7 +36,6 @@ public class TokenProvider {
                 .setSigningKey(key())
                 .build().parseClaimsJws(token)
                 .getBody();
-
         return Long.parseLong(claims.getSubject());
     }
     public Claims getAllClaimsFromToken(String token) {
@@ -81,7 +76,6 @@ public class TokenProvider {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + appProperties.getAuth().getTokenExpirationMsec());
 
-
         Claims claims = Jwts.claims().setSubject(userPrincipal.getId().toString());
         claims.put("roles", userPrincipal.getAuthorities());
 
@@ -92,5 +86,33 @@ public class TokenProvider {
                 .setExpiration(expiryDate)
                 .signWith(key(),SignatureAlgorithm.HS512)
                 .compact();
+    }
+
+    public String generateTokenWithEmail(String email) {
+        return Jwts.builder()
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + appProperties.getAuth().getTokenExpirationMsec()))
+                .signWith(key(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String extractEmail(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getSubject();
+    }
+
+    public boolean isTokenExpired(String token) {
+        Date expiration = Jwts.parserBuilder()
+                .setSigningKey(key())
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
+        return expiration.before(new Date());
     }
 }
