@@ -9,6 +9,7 @@
     import com.quocanh.doan.config.Oauth2.RestAuthEntryPoint;
     import com.quocanh.doan.config.Oauth2.OAuth2AuthenticationFailureHandler;
     import com.quocanh.doan.Service.ImplementService.User.UserDetailsImplementService;
+    import lombok.AllArgsConstructor;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;
     import org.springframework.http.HttpMethod;
@@ -24,7 +25,6 @@
     import org.springframework.security.crypto.password.PasswordEncoder;
     import org.springframework.security.web.SecurityFilterChain;
     import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
     @Configuration
     @EnableWebSecurity
     @EnableMethodSecurity(
@@ -32,25 +32,15 @@
             jsr250Enabled = true,
             prePostEnabled = true
     )
+    @AllArgsConstructor
     public class SecurityConfig {
 
-        private final ImplementOauth2UserService implementOauth2UserService;
-        private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+//        private final ImplementOauth2UserService implementOauth2UserService;
+//        private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
         private final UserDetailsImplementService userDetailsImplementService;
-        private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+//        private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
         private final RestAuthEntryPoint restAuthEntryPoint;
 
-
-        public SecurityConfig(ImplementOauth2UserService implementOauth2UserService,
-                              OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler,
-                              UserDetailsImplementService userDetailsImplementService, RestAuthEntryPoint restAuthEntryPoint,
-                              OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler) {
-            this.implementOauth2UserService = implementOauth2UserService;
-            this.oAuth2AuthenticationSuccessHandler = oAuth2AuthenticationSuccessHandler;
-            this.userDetailsImplementService = userDetailsImplementService;
-            this.restAuthEntryPoint = restAuthEntryPoint;
-            this.oAuth2AuthenticationFailureHandler = oAuth2AuthenticationFailureHandler;
-        }
         @Bean
         public PasswordEncoder passwordEncoder() {
             return new BCryptPasswordEncoder();
@@ -88,19 +78,19 @@
                                     .requestMatchers("/api/auth/**","/api/clientController/**", "/oauth2/**").permitAll()
                                     .anyRequest().authenticated()
                     )
-                    .oauth2Login(
-                            oauth -> oauth
-                                    .authorizationEndpoint(authEnpoint -> authEnpoint
-                                            .baseUri("/oauth2/authorize")
-                                            .authorizationRequestRepository(cookieOauth2AuthorizationRequestRepository()))
-                                    .redirectionEndpoint(redirectionEndpointConfig -> redirectionEndpointConfig
-                                            .baseUri("/oauth2/callback/*"))
-                                    .userInfoEndpoint(
-                                            userInfoEndpointConfig -> userInfoEndpointConfig.userService(implementOauth2UserService)
-                                    )
-                                    .successHandler(oAuth2AuthenticationSuccessHandler)
-                                    .failureHandler(oAuth2AuthenticationFailureHandler)
-                    ).addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+//                    .oauth2Login(
+//                            oauth -> oauth
+//                                    .authorizationEndpoint(authEnpoint -> authEnpoint
+//                                            .baseUri("/oauth2/authorize")
+//                                            .authorizationRequestRepository(cookieOauth2AuthorizationRequestRepository()))
+//                                    .redirectionEndpoint(redirectionEndpointConfig -> redirectionEndpointConfig
+//                                            .baseUri("/oauth2/callback/*"))
+//                                    .userInfoEndpoint(
+//                                            userInfoEndpointConfig -> userInfoEndpointConfig.userService(implementOauth2UserService)
+//                                    )
+//                                    .successHandler(oAuth2AuthenticationSuccessHandler)
+//                                    .failureHandler(oAuth2AuthenticationFailureHandler)
+                    .addFilterBefore(tokenAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
             http.authenticationProvider(authenticationProvider());
             return http.build();
         }

@@ -11,23 +11,22 @@ import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.search.mapper.pojo.automaticindexing.ReindexOnUpdate;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexingDependency;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
 @Data
 @Table(name = "Job")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "company" })
-@Indexed
+@Indexed()
 public class Job {
     private static final Integer STATUS_INACTIVE = 0;
     private static final Integer STATUS_ACTIVE = 1;
+    private static final Integer STATUS_ARCHIVED = -1;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -88,6 +87,10 @@ public class Job {
     @IndexedEmbedded
     private JobType type;
 
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<Applicant> applicants;
 
     @ManyToMany
     @JoinTable(
@@ -119,11 +122,17 @@ public class Job {
     private LocalDateTime expiredDate;
 
     @CreationTimestamp
+    @GenericField
     private LocalDateTime createdDateTime;
 
     @UpdateTimestamp
     private LocalDateTime updatedDateTime;
 
+    @Min(-1)
+    @Column(name = "status", nullable = false)
+    @GenericField
+    @IndexingDependency(reindexOnUpdate = ReindexOnUpdate.DEFAULT)
+    private Integer status;
 
     public static Integer getStatusInactive() {
         return Job.STATUS_INACTIVE;

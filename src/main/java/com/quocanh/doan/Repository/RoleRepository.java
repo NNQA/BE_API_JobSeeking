@@ -1,6 +1,6 @@
 package com.quocanh.doan.Repository;
 
-import com.quocanh.doan.Model.ERole;
+import com.quocanh.doan.Model.Enum.ERole;
 import com.quocanh.doan.Model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 

@@ -56,7 +56,7 @@ Since Elasticsearch does not work with Hibernate Search directly, some adaptatio
 ##           type: local-filesystem
 ##           root: ./lucene-data
 ##         analysis:
-##           configurer: com.quocanh.doan.Security.ConfigLucene.CustomAnalyzerConfigurer
+##           configurer: com.quocanh.doan.config.ConfigLucene.CustomAnalyzerConfigurer
 ##         schema_management:
 ##           strategy: drop-and-create
 ##         indexing:

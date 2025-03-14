@@ -9,7 +9,6 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CodeRequest {
-    private String email;
-    private String code;
+public class VerifyEmailRequest {
+    private String token;
 }

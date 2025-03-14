@@ -1,15 +1,17 @@
 package com.quocanh.doan.Service.ImplementService.User;
 
-import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
+import com.quocanh.doan.Exception.CheckCode.EmailVerifycationException;
 import com.quocanh.doan.Exception.ErrorDetail;
-import com.quocanh.doan.Exception.Job.JobExcetionHandler;
 import com.quocanh.doan.Exception.Signup.*;
 import com.quocanh.doan.Exception.UserNotFoundException;
 import com.quocanh.doan.Model.AuthProvider;
-import com.quocanh.doan.Model.ERole;
+import com.quocanh.doan.Model.Enum.ERole;
+import com.quocanh.doan.Model.Enum.TokenType;
 import com.quocanh.doan.Model.Role;
+import com.quocanh.doan.Model.TokenStore;
 import com.quocanh.doan.Model.User;
 import com.quocanh.doan.Repository.RoleRepository;
+import com.quocanh.doan.Repository.TokenStoreRepository;
 import com.quocanh.doan.Repository.UserRepository;
 import com.quocanh.doan.Service.ImplementService.Email.EmailImplementService;
 import com.quocanh.doan.Service.Interface.UserIntef.IUserService;
@@ -17,36 +19,29 @@ import com.quocanh.doan.Utils.AppConstants;
 import com.quocanh.doan.config.Jwt.TokenProvider;
 import com.quocanh.doan.dto.request.UserUpdate;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
+import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.ObjectError;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class UserService implements IUserService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final EmailImplementService emailImplementService;
     private final RoleRepository roleRepository;
     private final TokenProvider tokenProvider;
+    private final TokenStoreRepository tokenStoreRepository;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    public UserService(UserRepository userRepository, RoleRepository roleRepository,
-                       PasswordEncoder encoder, EmailImplementService emailImplementService,
-                       TokenProvider tokenProvider) {
-        this.userRepository = userRepository;
-        this.encoder = encoder;
-        this.emailImplementService = emailImplementService;
-        this.roleRepository = roleRepository;
-        this.tokenProvider = tokenProvider;
-    }
     @Override
     public User save(User user) {
         userRepository.save(user);
@@ -68,6 +63,29 @@ public class UserService implements IUserService {
                     }
                 })
                 .toList();
+    }
+    private User saveUser(SignupRequest signupRequest) {
+        return User.builder()
+                .email(signupRequest.getEmail())
+                .password(encoder.encode(signupRequest.getPassword()))
+                .provider(AuthProvider.local)
+                .verifiedEmail(false)
+                .roles(Set.of(
+                        roleRepository.findByName(ERole.ROLE_ADMIN)
+                                .orElseThrow(() -> new SignupException("Error: Role is not found."))
+                ))
+                .isNewUser(true)
+                .firstName(signupRequest.getFirstName())
+                .lastName(signupRequest.getLastName())
+                .build();
+    }
+    private TokenStore saveToken(User user, String verifycationToken, TokenType type) {
+        return TokenStore.builder()
+                .revoked(false)
+                .token(verifycationToken)
+                .tokenType(type)
+                .user(user)
+                .build();
     }
     @Override
     public void signUp(SignupRequest signupRequest, BindingResult result) {
@@ -127,39 +145,33 @@ public class UserService implements IUserService {
         }
         logger.info("################ finished validation");
         String verificationToken = tokenProvider.generateTokenWithEmail(signupRequest.getEmail());
-        User user = User.builder()
-                .email(signupRequest.getEmail())
-                .password(encoder.encode(signupRequest.getPassword()))
-                .provider(AuthProvider.local)
-                .verifyEmail(verificationToken)
-                .verified(false)
-                .roles(Set.of(
-                        roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new SignupException("Error: Role is not found."))
-                ))
-                .isNewUser(true)
-                .firstName(signupRequest.getFirstName())
-                .lastName(signupRequest.getLastName())
-                .build();
 
+        User user = saveUser(signupRequest);
+        TokenStore tokenStore = saveToken(user, verificationToken, TokenType.EMAIL_VERIFYCATION);
         this.save(user);
-        emailImplementService.sendMailRegister(signupRequest.getEmail(),
-                AppConstants.REDIRECT_URL_FE + "/auth/verify?token=" + verificationToken
-        );
+        tokenStoreRepository.save(tokenStore);
+        emailImplementService.sendMailRegister(signupRequest.getEmail(), verificationToken);
     }
+
     @Override
-    public void VerifiedCode(String email, String code) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Cannot found user in system!!!"));
+    public void verifyEmailWithToken(String token) {
+        TokenStore tokenStore = tokenStoreRepository.findByTokenAndTokenTypeAndRevokedFalseAndExpiresAtAfter(
+            token, TokenType.EMAIL_VERIFYCATION, LocalDateTime.now()
+        ).orElseThrow(() ->
+             new EmailVerifycationException(
+                "Verify email issue",
+                HttpStatus.BAD_REQUEST,
+                List.of(
+                        new ErrorDetail("email", "Your token is expired or cannot find your token!!!")
+                ),
+                "/system/verify"
+             )
+        );
+        User user = tokenStore.getUser();
 
-//        if(user().equals(code)) {
-//            user.setCheckCode(true);
-//            this.save(user);
-//        } else {
-//            throw new CheckCodeException("Your code provided does not match");
-//        }
+        user.setVerifiedEmail(true);
+        this.save(user);
     }
-
     @Override
     public User updateRoleUser(Long id) {
         User user = userRepository.findById(id).orElseThrow(
@@ -192,5 +204,15 @@ public class UserService implements IUserService {
             logger.error(ex.getMessage());
             throw new UserNotFoundException(ex.getMessage());
         }
+    }
+
+    @Override
+    public void deleteAll() {
+
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return null;
     }
 }

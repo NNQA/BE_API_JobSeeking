@@ -3,10 +3,7 @@ package com.quocanh.doan.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.ManyToAny;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,34 +15,40 @@ import java.util.Set;
 
 @Entity
 @Data
+@Builder
 @Table(name = "users", uniqueConstraints = {
         @UniqueConstraint(columnNames = "email")
 })
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
-    @Column(nullable = true)
-    private String name;
+    private String firstName;
+
+    private String lastName;
+
+    @Column(unique = true)
+    private String userName;
 
     @Column(nullable = false)
     private String email;
-    @Column(nullable = false)
-    private boolean verifyEmail = false;
+
     @JsonIgnore
     private String password;
 
     private String imageUrl;
+
+    private boolean verifiedEmail;
+
     @NonNull
     @Enumerated(EnumType.STRING)
     private AuthProvider provider;
 
     private String providerId;
 
-    private String codeConfirm;
-
-    private boolean checkCode;
 
     private boolean isNewUser;
 
@@ -75,6 +78,4 @@ public class User {
 
     @UpdateTimestamp
     private LocalDateTime updatedDateTime;
-
-    public User() {}
 }

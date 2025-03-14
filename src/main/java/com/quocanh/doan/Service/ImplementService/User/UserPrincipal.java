@@ -16,7 +16,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private String email;
     private String password;
     private boolean isNewUser;
-    private String name;
+    private String userName;
     private String phone;
     private String university;
     private String experiencelevel;
@@ -31,7 +31,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.authorities = authorities;
         this.isNewUser = isNewUser;
         this.university = university;
-        this.name = name;
+        this.userName = name;
         this.phone = phone;
         this.experiencelevel = experiencelevel;
     }
@@ -49,7 +49,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 user.isNewUser(),
                 user.getUniversity(),
                 user.getPhone(),
-                user.getName(),
+                user.getUserName(),
                 user.getExperiencelevel()
         );
     }
@@ -77,7 +77,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public String getName() {
-        return name;
+        return userName;
     }
     public Long getId() {
         return id;
@@ -105,7 +105,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
 
     @Override
     public String getUsername() {
-        return name;
+        return userName;
     }
 
     @Override

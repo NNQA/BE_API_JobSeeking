@@ -1,5 +1,6 @@
 package com.quocanh.doan.Model;
 
+import com.quocanh.doan.Model.Enum.ERole;
 import jakarta.persistence.*;
 
 

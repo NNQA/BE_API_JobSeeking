@@ -1,12 +1,12 @@
 package com.quocanh.doan.Service.ImplementService.Job;
 
-import ch.qos.logback.core.joran.spi.JoranException;
 import com.quocanh.doan.Exception.Company.CompanyExeptionHanlde;
 import com.quocanh.doan.Exception.Job.JobExcetionHandler;
 import com.quocanh.doan.Exception.UserNotFoundException;
 import com.quocanh.doan.Mapper.JobMapper;
 import com.quocanh.doan.Model.*;
 import com.quocanh.doan.Repository.*;
+import com.quocanh.doan.Service.ImplementService.IndexService.IndexService;
 import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
 import com.quocanh.doan.Service.Interface.Job.IJob;
 import com.quocanh.doan.dto.request.Job.JobCategoryRequest;
@@ -24,7 +24,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -35,6 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class JobImplement implements IJob {
 
     private final JobRepository jobRepository;
@@ -45,15 +45,15 @@ public class JobImplement implements IJob {
     private final JobCategoryRepository jobCategoryRepository;
     private final UserRepository userRepository;
     private final SkillRepository skillRepository;
-
     private final AddressRepository addressRepository;
     private final SalaryRepository salaryRepository;
+    private final IndexService indexService;
 
     public JobImplement(JobRepository jobRepository, CompanyRepository companyRepository,
                         JobTypeRepository jobTypeRepository, JobPostionRepository jobPostionRepository,
                         UserRepository userRepository, SkillRepository skillRepository,
                         JobCategoryRepository jobCategoryRepository, AddressRepository addressRepository,
-                        SalaryRepository salaryRepository) {
+                        SalaryRepository salaryRepository, IndexService indexService) {
         this.jobRepository = jobRepository;
         this.jobTypeRepository = jobTypeRepository;
         this.jobPostionRepository = jobPostionRepository;
@@ -63,6 +63,7 @@ public class JobImplement implements IJob {
         this.jobCategoryRepository = jobCategoryRepository;
         this.addressRepository = addressRepository;
         this.salaryRepository = salaryRepository;
+        this.indexService = indexService;
     }
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -172,7 +173,7 @@ public class JobImplement implements IJob {
             salaryRepository.save(salary);
 
             newJob.setSalary(salary);
-
+            newJob.setStatus(Job.getStatusInactive());
             logger.info("############## store job to database");
 
             this.jobRepository.save(newJob);
@@ -388,6 +389,23 @@ public class JobImplement implements IJob {
         } catch (EmptyResultDataAccessException ex) {
             logger.error(ex.getMessage());
             throw new JobExcetionHandler("Cannot delete this job!!!");
+        }
+    }
+
+    @Override
+    public void approvedJob(Long id) {
+        Optional<Job> job = Optional.ofNullable(jobRepository.findById(id).orElseThrow(
+                () -> new JobExcetionHandler("Cannot find job in system!!!!")
+        ));
+
+        job.get().setStatus(Job.getStatusActive());
+        try {
+            jobRepository.save(job.get());
+//            indexService.updateIndex(job.get());
+        }
+        catch (RuntimeException e) {
+            logger.error("Service is not correctl in fields",e.getMessage());
+            throw new JobExcetionHandler(e.getMessage());
         }
     }
 

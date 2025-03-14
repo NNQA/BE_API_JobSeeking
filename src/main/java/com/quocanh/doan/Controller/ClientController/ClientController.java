@@ -48,13 +48,24 @@ public class ClientController {
     }
     @GetMapping("/getCategoryName")
     public ResponseEntity<?> getCategoryName() {
-        Set<String> listProvinceName = clientImplementService.getAllCategoryName();
-        return ResponseEntity.ok(listProvinceName);
+        Set<String> listCategoryName = clientImplementService.getAllCategoryName();
+        return ResponseEntity.ok(listCategoryName);
+    }
+    @GetMapping("/getPositionName")
+    public ResponseEntity<?> getPositionName() {
+        List<String> listCategoryName = clientImplementService.getPositionName();
+        return ResponseEntity.ok(listCategoryName);
     }
     @GetMapping("/getDetailsJob")
-    public ResponseEntity<?> getJobDetailsWithTitle(@RequestParam String title) {
+    public ResponseEntity<?> getJobDetailsWithTitle(@RequestParam String title, @RequestParam Long id) {
         String str = java.net.URLDecoder.decode(title, StandardCharsets.UTF_8);
-        JobResponse jobResponse= clientImplementService.getJobDetailsWithJob(str);
+        JobResponse jobResponse= clientImplementService.getJobDetailsWithJob(str, id);
         return ResponseEntity.ok(jobResponse);
+    }
+
+    @GetMapping("/getListJobHomePage")
+    public ResponseEntity<?> getListJobHomePage() {
+        List<JobResponse> jobResponseList = clientImplementService.getNewJob();
+        return ResponseEntity.ok(jobResponseList);
     }
 }

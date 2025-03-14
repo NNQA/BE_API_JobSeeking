@@ -17,5 +17,5 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
     @Query("SELECT a FROM Applicant a WHERE a.job IN :jobs")
     Page<Applicant> findApplicantsByJobs(@Param("jobs") List<Job> jobs, Pageable pageable);
 
-    Optional<Applicant> findByIdAndAndUser_Name(Long idApp, String username);
+    Optional<Applicant> findByIdAndAndUser_UserName(Long idApp, String username);
 }

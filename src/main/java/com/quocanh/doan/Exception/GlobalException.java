@@ -1,16 +1,9 @@
 package com.quocanh.doan.Exception;
 
 
-import com.quocanh.doan.Exception.Applicant.ApplicantException;
-import com.quocanh.doan.Exception.CheckCode.CheckCodeException;
-import com.quocanh.doan.Exception.Company.CompanyExeptionHanlde;
-import com.quocanh.doan.Exception.Job.JobExcetionHandler;
-import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
-import com.quocanh.doan.Exception.Signup.*;
 import com.quocanh.doan.dto.request.ApiResponseProblemDetails;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 

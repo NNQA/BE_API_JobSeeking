@@ -10,7 +10,6 @@ spring:
       ddl-auto: update
     show-sql: true
   elasticsearch:
-
     password: 123
     uris: http://localhost:9200
     username: elastic

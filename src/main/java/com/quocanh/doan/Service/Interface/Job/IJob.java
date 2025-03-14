@@ -19,4 +19,5 @@ public interface IJob {
     JobResponse getByIdForCompany(Long id, Long idCompany);
     JobPaginationResponse getAllJobPage(Long id, Integer pageNo, Integer pageSize);
     void DeleteById(Long id);
+    void approvedJob(Long id);
 }

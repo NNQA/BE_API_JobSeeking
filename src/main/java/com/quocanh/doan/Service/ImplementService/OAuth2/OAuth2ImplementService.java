@@ -3,13 +3,12 @@ package com.quocanh.doan.Service.ImplementService.OAuth2;
 import com.quocanh.doan.Exception.OAuth2AuthenticationProcessingException;
 import com.quocanh.doan.Exception.Signup.SignupException;
 import com.quocanh.doan.Model.AuthProvider;
-import com.quocanh.doan.Model.ERole;
+import com.quocanh.doan.Model.Enum.ERole;
 import com.quocanh.doan.Model.Role;
 import com.quocanh.doan.Model.User;
 import com.quocanh.doan.Repository.RoleRepository;
 import com.quocanh.doan.Repository.UserRepository;
-import com.quocanh.doan.Security.Oauth2.OAuth2UserInfo;
-import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
+import com.quocanh.doan.config.Oauth2.OAuth2UserInfo;
 import com.quocanh.doan.Service.Interface.OAuth2.Oauth2ServiceLayer;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.stereotype.Service;
@@ -56,10 +55,10 @@ public class OAuth2ImplementService implements Oauth2ServiceLayer {
 
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
         user.setProviderId(oAuth2UserInfo.getId());
-        user.setName(oAuth2UserInfo.getName());
+//        user.setName(oAuth2UserInfo.getName());
         user.setImageUrl(oAuth2UserInfo.getImageUrl());
         user.setEmail(oAuth2UserInfo.getEmail());
-        user.setCheckCode(true);
+//        user.setCheckCode(true);
         Set<Role> roles = new HashSet<>();
         Role supplierRole = roleRepository.findByName(ERole.ROLE_USER)
                 .orElseThrow(() -> new SignupException("Error: Role is not found."));
@@ -71,7 +70,7 @@ public class OAuth2ImplementService implements Oauth2ServiceLayer {
 
     @Override
     public User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
-        existingUser.setName(oAuth2UserInfo.getName());
+//        existingUser.setName(oAuth2UserInfo.getName());
         return userRepository.save(existingUser);
     }
 

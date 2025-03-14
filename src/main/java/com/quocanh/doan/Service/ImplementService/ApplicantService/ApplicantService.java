@@ -99,8 +99,6 @@ public class ApplicantService implements IApplicant {
         Company company = this.companyRepository.findByUser(user)
                 .orElseThrow(() -> new CompanyExeptionHanlde("Cannot find company"));
         List<Job> jobList = this.jobRepository.getAllByCompany(company);
-        System.out.println("job");
-        System.out.println(jobList);
         logger.info("############## create pageable");
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         logger.info("############## ");
@@ -121,8 +119,6 @@ public class ApplicantService implements IApplicant {
             throw new JobExcetionHandler(ex);
         }
         logger.info("############## map list applicantResponses");
-        System.out.println("asdsd");
-        System.out.println(applicants.getContent());
         List<ApplicantResponse> applicantResponses = ApplicantMapper.INSTANCE.applicantListToAppicantResponseList(applicants.getContent());
         return new ApplicantPaginationResponse(
                 applicantResponses,
@@ -136,13 +132,7 @@ public class ApplicantService implements IApplicant {
 
     @Override
     public ApplicantResponse getDetailsApplicantUser(Long idApply, String username) {
-        System.out.println(
-                idApply
-        );
-        System.out.println(
-                username
-        );
-        Applicant applicant = applicantRepository.findByIdAndAndUser_Name(idApply, username)
+        Applicant applicant = applicantRepository.findByIdAndAndUser_UserName(idApply, username)
                 .orElseThrow(
                         () -> new ApplicantException("Cannot find applicant")
                 );
