@@ -8,6 +8,7 @@ import com.quocanh.doan.Service.ImplementService.User.UserRefreshTokenService;
 import com.quocanh.doan.Service.ImplementService.User.UserService;
 import com.quocanh.doan.dto.request.ApiResponseProblemDetails;
 import com.quocanh.doan.dto.request.authentication.LoginRequest;
+import com.quocanh.doan.dto.request.authentication.RequestTokenEmailAgain;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
 import com.quocanh.doan.dto.request.authentication.VerifyEmailRequest;
 import com.quocanh.doan.dto.response.LoginResponse;
@@ -81,6 +82,12 @@ public class AuthenticationController {
     @PostMapping("/verify-email")
     public  ResponseEntity VerifiedCode(@RequestBody VerifyEmailRequest request) {
         userService.verifyEmailWithToken(request.getToken());
+        return ResponseEntity.ok().body(HttpStatus.OK);
+    }
+
+    @PostMapping("/request-token-email")
+    public  ResponseEntity requestTokenEmailAgain(@RequestBody RequestTokenEmailAgain request) {
+        userService.sendRequestEmailAgain(request.getEmail());
         return ResponseEntity.ok().body(HttpStatus.OK);
     }
 }

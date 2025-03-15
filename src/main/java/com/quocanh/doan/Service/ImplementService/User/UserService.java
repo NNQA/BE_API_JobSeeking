@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -75,8 +76,6 @@ public class UserService implements IUserService {
                                 .orElseThrow(() -> new SignupException("Error: Role is not found."))
                 ))
                 .isNewUser(true)
-                .firstName(signupRequest.getFirstName())
-                .lastName(signupRequest.getLastName())
                 .build();
     }
     private TokenStore saveToken(User user, String verifycationToken, TokenType type) {
@@ -85,6 +84,7 @@ public class UserService implements IUserService {
                 .token(verifycationToken)
                 .tokenType(type)
                 .user(user)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
                 .build();
     }
     @Override
@@ -214,5 +214,44 @@ public class UserService implements IUserService {
     @Override
     public List<User> getAllUsers() {
         return null;
+    }
+
+    @Override
+    public void sendRequestEmailAgain(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User account",
+                                HttpStatus.NOT_FOUND,
+                                List.of(
+                                        new ErrorDetail("email", "Cannot find your email or account system")
+                                ),
+                                "/system/user"
+                        )
+                );
+        TokenStore tokenStore = tokenStoreRepository.findTopByUserAndTokenTypeOrderByCreatedDateTimeDesc(user, TokenType.EMAIL_VERIFYCATION)
+                .orElseThrow(() ->
+                    new EmailVerifycationException(
+                            "Verify email issue",
+                            HttpStatus.BAD_REQUEST,
+                            List.of(
+                                    new ErrorDetail("email", "No verification token found")
+                            ),
+                            "/system/verify"
+                    )
+                );
+        if (!tokenStore.isExpired() && !tokenStore.canRequestAgain(5)) {
+            throw new EmailVerifycationException(
+                    "Too many requests",
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    List.of(new ErrorDetail("email", "Please wait before requesting a new email verification.")),
+                    "/system/verify"
+            );
+        }
+
+        String verificationToken = tokenProvider.generateTokenWithEmail(user.getEmail());
+
+        TokenStore tokenStore1 = saveToken(user, verificationToken, TokenType.EMAIL_VERIFYCATION);
+        tokenStoreRepository.save(tokenStore1);
     }
 }

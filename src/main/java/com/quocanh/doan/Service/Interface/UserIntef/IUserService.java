@@ -17,4 +17,5 @@ public interface IUserService {
     void updateNewUser(UserPrincipal userPrincipal,UserUpdate userUpdate);
     void deleteAll();
     List<User> getAllUsers();
+    void sendRequestEmailAgain(String email);
 }

@@ -1,13 +1,14 @@
 package com.quocanh.doan.Exception;
 
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.http.HttpStatus;
 
-public class UserNotFoundException extends UsernameNotFoundException {
-    public UserNotFoundException(String msg) {
-        super(msg);
+import java.util.List;
+
+public class UserNotFoundException extends ExceptionClass {
+    public UserNotFoundException(String message) {
+            super(message);
     }
-
-    public UserNotFoundException(String msg, Throwable cause) {
-        super(msg, cause);
+    public UserNotFoundException(String title, HttpStatus status, List<ErrorDetail> errors, String instance) {
+            super(title, status, errors, instance);
     }
 }
