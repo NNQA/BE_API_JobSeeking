@@ -30,7 +30,7 @@ public class UserDetailsImplementService implements UserDetailsService {
         User user = userRepository.findUserByEmailOrUserName(usernameOremail, usernameOremail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with " + usernameOremail));
 
-        if (!isEmailVerified(user)) {
+        if (isEmailVerified(user)) {
             throw new EmailVerifycationException(
                     "Verify email issue",
                     HttpStatus.BAD_REQUEST,
@@ -48,7 +48,7 @@ public class UserDetailsImplementService implements UserDetailsService {
         User user = userRepository.findById(id).orElseThrow(
                 () -> new UserNotFoundException("User not found with " + id)
         );
-        if (!isEmailVerified(user)) {
+        if (!user.isVerifiedEmail()) {
             throw new EmailVerifycationException(
                     "Verify email issue",
                     HttpStatus.BAD_REQUEST,
@@ -62,7 +62,7 @@ public class UserDetailsImplementService implements UserDetailsService {
     }
 
     private boolean isEmailVerified(User user) {
-        return tokenRepository.existsByUserIdAndTokenTypeAndRevokedFalse(user.getId(), TokenType.EMAIL_VERIFYCATION);
+        return !tokenRepository.existsByUserIdAndTokenTypeAndRevokedFalse(user.getId(), TokenType.EMAIL_VERIFYCATION);
     }
 }
 

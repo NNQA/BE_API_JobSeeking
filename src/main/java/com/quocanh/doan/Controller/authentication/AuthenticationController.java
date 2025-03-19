@@ -1,6 +1,7 @@
 package com.quocanh.doan.Controller.authentication;
 
 
+import com.quocanh.doan.Exception.ErrorDetail;
 import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
 import com.quocanh.doan.config.Jwt.TokenProvider;
 import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
@@ -29,22 +30,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/api/auth")
 public class AuthenticationController {
-    private final AuthenticationManager authenticationManager;
-    private final TokenProvider tokenProvider;
     private final UserService userService;
-    private final UserRefreshTokenService userRefreshTokenService;
     private final Logger logger = (Logger) LoggerFactory.getLogger(this.getClass());
 
-    public AuthenticationController(AuthenticationManager authenticationManager,
-                                    UserService userService,TokenProvider provider,
-                                    UserRefreshTokenService userRefreshTokenService) {
-        this.authenticationManager = authenticationManager;
-        this.tokenProvider = provider;
+    public AuthenticationController(UserService userService) {
         this.userService = userService;
-        this.userRefreshTokenService = userRefreshTokenService;
     }
 
     @PostMapping("/signup")
@@ -55,28 +50,9 @@ public class AuthenticationController {
     }
     @PostMapping("/login")
     public ResponseEntity Login(@RequestBody LoginRequest loginRequest) {
-        try {
-            logger.info("############## /api/auth/login started");
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-            String accessToken = tokenProvider.generateToken(authentication);
-            Long refreshToken = userRefreshTokenService.saveTokenRequest(authentication);
-
-            return ResponseEntity.ok().body(
-                    new LoginResponse(
-                            accessToken,
-                            String.valueOf(refreshToken),
-                            userPrincipal.getIsNewUser(),
-                            userPrincipal.getAuthorities()
-                    )
-            );
-        } catch (AuthenticationException exception) {
-            logger.info("-------------- increnditails login");
-            throw new InvalidCredenticalException("Some attributes is not match");
-        }
+        logger.info("############## /api/auth/login started");
+        LoginResponse loginResponse = userService.login(loginRequest);
+        return ResponseEntity.ok().body(loginResponse);
     }
 
     @PostMapping("/verify-email")

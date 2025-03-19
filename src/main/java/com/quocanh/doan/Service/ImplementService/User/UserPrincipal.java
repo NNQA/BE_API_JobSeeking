@@ -20,11 +20,12 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     private String phone;
     private String university;
     private String experiencelevel;
+    private boolean verifiedEmail;
     private Collection<? extends GrantedAuthority> authorities;
     private Map<String, Object> attributes;
 
     public UserPrincipal(Long id, String email, String password, Collection<? extends GrantedAuthority> authorities,
-                         boolean isNewUser, String university, String phone, String name, String experiencelevel ) {
+                         boolean isNewUser, String university, String phone, String name, String experiencelevel, boolean verifiedEmail ) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -34,6 +35,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         this.userName = name;
         this.phone = phone;
         this.experiencelevel = experiencelevel;
+        this.verifiedEmail =  verifiedEmail;
     }
 
     public static UserPrincipal build(User user) {
@@ -50,7 +52,8 @@ public class UserPrincipal implements OAuth2User, UserDetails {
                 user.getUniversity(),
                 user.getPhone(),
                 user.getUserName(),
-                user.getExperiencelevel()
+                user.getExperiencelevel(),
+                user.isVerifiedEmail()
         );
     }
 
@@ -98,6 +101,7 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     public String getUniversity() {
         return university;
     }
+    public boolean getVerifiedEmail() { return verifiedEmail;}
     @Override
     public String getPassword() {
         return password;

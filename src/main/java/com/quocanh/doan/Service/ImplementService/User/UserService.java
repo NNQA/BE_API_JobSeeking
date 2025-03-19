@@ -2,6 +2,7 @@ package com.quocanh.doan.Service.ImplementService.User;
 
 import com.quocanh.doan.Exception.CheckCode.EmailVerifycationException;
 import com.quocanh.doan.Exception.ErrorDetail;
+import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
 import com.quocanh.doan.Exception.Signup.*;
 import com.quocanh.doan.Exception.UserNotFoundException;
 import com.quocanh.doan.Model.AuthProvider;
@@ -15,16 +16,21 @@ import com.quocanh.doan.Repository.TokenStoreRepository;
 import com.quocanh.doan.Repository.UserRepository;
 import com.quocanh.doan.Service.ImplementService.Email.EmailImplementService;
 import com.quocanh.doan.Service.Interface.UserIntef.IUserService;
-import com.quocanh.doan.Utils.AppConstants;
 import com.quocanh.doan.config.Jwt.TokenProvider;
 import com.quocanh.doan.dto.request.UserUpdate;
+import com.quocanh.doan.dto.request.authentication.LoginRequest;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
+import com.quocanh.doan.dto.response.LoginResponse;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
@@ -42,6 +48,8 @@ public class UserService implements IUserService {
     private final RoleRepository roleRepository;
     private final TokenProvider tokenProvider;
     private final TokenStoreRepository tokenStoreRepository;
+    private final AuthenticationManager authenticationManager;
+    private final UserRefreshTokenService userRefreshTokenService;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Override
     public User save(User user) {
@@ -72,7 +80,7 @@ public class UserService implements IUserService {
                 .provider(AuthProvider.local)
                 .verifiedEmail(false)
                 .roles(Set.of(
-                        roleRepository.findByName(ERole.ROLE_ADMIN)
+                        roleRepository.findByName(ERole.ROLE_USER)
                                 .orElseThrow(() -> new SignupException("Error: Role is not found."))
                 ))
                 .isNewUser(true)
@@ -154,6 +162,54 @@ public class UserService implements IUserService {
     }
 
     @Override
+    public LoginResponse login(LoginRequest loginRequest) {
+        try {
+            logger.info("############## /api/auth/login started");
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            UserPrincipal userPrincipal = getUserPrincipal(authentication);
+            String accessToken = tokenProvider.generateToken(authentication);
+            Long refreshToken = userRefreshTokenService.saveTokenRequest(authentication);
+
+            return LoginResponse.builder()
+                    .isNewUser(userPrincipal.getIsNewUser())
+                    .authorities(userPrincipal.getAuthorities())
+                    .refreshToken(refreshToken)
+                    .accessToken(accessToken)
+                    .build();
+        } catch (AuthenticationException exception) {
+            logger.info("-------------- increnditails login");
+            throw new InvalidCredenticalException(
+                    "Login issue",
+                    HttpStatus.BAD_REQUEST,
+                    List.of(
+                            new ErrorDetail("login", exception.getMessage())
+                    ),
+                    "/system/auth"
+            );
+        }
+    }
+
+    private static UserPrincipal getUserPrincipal(Authentication authentication) {
+        UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
+
+        if(!userPrincipal.getVerifiedEmail()) {
+            throw new EmailVerifycationException(
+                    "Verify email issue",
+                    HttpStatus.BAD_REQUEST,
+                    List.of(
+                            new ErrorDetail("email", "Your account is not verified email. Please check email!!!")
+                    ),
+                    "/system/verify"
+            );
+        }
+        return userPrincipal;
+    }
+
+    @Override
     public void verifyEmailWithToken(String token) {
         TokenStore tokenStore = tokenStoreRepository.findByTokenAndTokenTypeAndRevokedFalseAndExpiresAtAfter(
             token, TokenType.EMAIL_VERIFYCATION, LocalDateTime.now()
@@ -168,9 +224,10 @@ public class UserService implements IUserService {
              )
         );
         User user = tokenStore.getUser();
-
+        tokenStore.setRevoked(true);
         user.setVerifiedEmail(true);
         this.save(user);
+        tokenStoreRepository.save(tokenStore);
     }
     @Override
     public User updateRoleUser(Long id) {
@@ -253,5 +310,7 @@ public class UserService implements IUserService {
 
         TokenStore tokenStore1 = saveToken(user, verificationToken, TokenType.EMAIL_VERIFYCATION);
         tokenStoreRepository.save(tokenStore1);
+
+        emailImplementService.sendMailRegister(user.getEmail(),verificationToken);
     }
 }

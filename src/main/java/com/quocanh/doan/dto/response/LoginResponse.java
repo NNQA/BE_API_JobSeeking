@@ -13,7 +13,7 @@ import java.util.Collection;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class LoginResponse {
     String accessToken;
-    String refreshToken;
+    Long refreshToken;
     boolean isNewUser;
     Collection<? extends GrantedAuthority> authorities;
 }
