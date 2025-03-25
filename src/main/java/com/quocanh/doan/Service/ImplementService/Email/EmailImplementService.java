@@ -27,7 +27,6 @@ public class EmailImplementService implements IEmailService {
     }
     @Override
     public void sendMailRegister(String toEmail, String token) {
-        System.out.println(fromMail);
         try {
             ClassPathResource resource = new ClassPathResource("templates/SendMailRegisterFile.html");
             InputStream inputStream = resource.getInputStream();
@@ -45,6 +44,26 @@ public class EmailImplementService implements IEmailService {
         } catch (IOException | MessagingException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    @Override
+    public void sendMailRetrievePassword(String toEmail, String token) {
+        try {
+            ClassPathResource resource = new ClassPathResource("templates/SendMailRetrievePassword.html");
+            InputStream inputStream = resource.getInputStream();
+            String htmlContent = IOUtils.readInputStreamToString(inputStream, StandardCharsets.UTF_8);
+
+            htmlContent = htmlContent.replace("YOUR_TOKEN", token);
+
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            helper.setFrom(fromMail);
+            helper.setTo(toEmail);
+            helper.setSubject("Retrieve your password");
+            helper.setText(htmlContent, true);
+            javaMailSender.send(mimeMessage);
+        } catch (IOException | MessagingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

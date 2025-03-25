@@ -8,10 +8,7 @@ import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
 import com.quocanh.doan.Service.ImplementService.User.UserRefreshTokenService;
 import com.quocanh.doan.Service.ImplementService.User.UserService;
 import com.quocanh.doan.dto.request.ApiResponseProblemDetails;
-import com.quocanh.doan.dto.request.authentication.LoginRequest;
-import com.quocanh.doan.dto.request.authentication.RequestTokenEmailAgain;
-import com.quocanh.doan.dto.request.authentication.SignupRequest;
-import com.quocanh.doan.dto.request.authentication.VerifyEmailRequest;
+import com.quocanh.doan.dto.request.authentication.*;
 import com.quocanh.doan.dto.response.LoginResponse;
 import com.quocanh.doan.dto.response.UserResponse;
 import jakarta.validation.Valid;
@@ -64,6 +61,17 @@ public class AuthenticationController {
     @PostMapping("/request-token-email")
     public  ResponseEntity requestTokenEmailAgain(@RequestBody RequestTokenEmailAgain request) {
         userService.sendRequestEmailAgain(request.getEmail());
+        return ResponseEntity.ok().body(HttpStatus.OK);
+    }
+
+    @PostMapping("/forgot-password")
+    public  ResponseEntity forgotPasswordHandle(@RequestBody ForgotPasswordRequest request) {
+        userService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok().body(HttpStatus.OK);
+    }
+    @PostMapping("/is-new-password")
+    public  ResponseEntity requestNewPassword(@RequestBody @Valid ResetPasswordRequest request, BindingResult result) {
+        userService.resetPassword(request,result);
         return ResponseEntity.ok().body(HttpStatus.OK);
     }
 }

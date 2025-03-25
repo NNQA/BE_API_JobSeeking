@@ -22,15 +22,13 @@ import java.util.List;
 public class UserDetailsImplementService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final TokenStoreRepository tokenRepository;
-
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String usernameOremail) throws UsernameNotFoundException {
         User user = userRepository.findUserByEmailOrUserName(usernameOremail, usernameOremail)
                 .orElseThrow(() -> new UserNotFoundException("User not found with " + usernameOremail));
 
-        if (isEmailVerified(user)) {
+        if (!user.isVerifiedEmail()) {
             throw new EmailVerifycationException(
                     "Verify email issue",
                     HttpStatus.BAD_REQUEST,
@@ -59,10 +57,6 @@ public class UserDetailsImplementService implements UserDetailsService {
             );
         }
         return UserPrincipal.build(user);
-    }
-
-    private boolean isEmailVerified(User user) {
-        return !tokenRepository.existsByUserIdAndTokenTypeAndRevokedFalse(user.getId(), TokenType.EMAIL_VERIFYCATION);
     }
 }
 

@@ -1,6 +1,8 @@
 package com.quocanh.doan.Service.ImplementService.User;
 
+import com.nimbusds.openid.connect.sdk.op.ResolveException;
 import com.quocanh.doan.Exception.CheckCode.EmailVerifycationException;
+import com.quocanh.doan.Exception.CheckCode.ResetPasswordException;
 import com.quocanh.doan.Exception.ErrorDetail;
 import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
 import com.quocanh.doan.Exception.Signup.*;
@@ -19,6 +21,7 @@ import com.quocanh.doan.Service.Interface.UserIntef.IUserService;
 import com.quocanh.doan.config.Jwt.TokenProvider;
 import com.quocanh.doan.dto.request.UserUpdate;
 import com.quocanh.doan.dto.request.authentication.LoginRequest;
+import com.quocanh.doan.dto.request.authentication.ResetPasswordRequest;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
 import com.quocanh.doan.dto.response.LoginResponse;
 import lombok.AllArgsConstructor;
@@ -50,10 +53,25 @@ public class UserService implements IUserService {
     private final TokenStoreRepository tokenStoreRepository;
     private final AuthenticationManager authenticationManager;
     private final UserRefreshTokenService userRefreshTokenService;
+    private final PasswordEncoder passwordEncoder;
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Override
     public User save(User user) {
         userRepository.save(user);
+        return user;
+    }
+    public User findUserWithEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User account",
+                                HttpStatus.NOT_FOUND,
+                                List.of(
+                                        new ErrorDetail("email", "Cannot find your email or account system")
+                                ),
+                                "/system/user"
+                        )
+                );
         return user;
     }
     private List<Map<String, String>> createMessageError(BindingResult bindingResult) {
@@ -81,7 +99,14 @@ public class UserService implements IUserService {
                 .verifiedEmail(false)
                 .roles(Set.of(
                         roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new SignupException("Error: Role is not found."))
+                                .orElseThrow(() -> new SignupException(
+                                        "Missing property",
+                                        HttpStatus.BAD_REQUEST,
+                                        List.of(
+                                                new ErrorDetail("Roles", "Roles dont found in my system!!!")
+                                        ),
+                                        "/system/signup"
+                                    ))
                 ))
                 .isNewUser(true)
                 .build();
@@ -312,5 +337,75 @@ public class UserService implements IUserService {
         tokenStoreRepository.save(tokenStore1);
 
         emailImplementService.sendMailRegister(user.getEmail(),verificationToken);
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        User user = findUserWithEmail(email);
+        Optional<TokenStore> tokenStoreOpt = tokenStoreRepository.findTopByUserAndTokenTypeOrderByCreatedDateTimeDesc(user, TokenType.FORGOT_PASSWORD);
+
+        if(tokenStoreOpt.isPresent()) {
+            TokenStore tokenStore = tokenStoreOpt.get();
+            if (!tokenStore.isExpired() && !tokenStore.canRequestAgain(5)) {
+                throw new EmailVerifycationException(
+                        "Too many requests",
+                        HttpStatus.TOO_MANY_REQUESTS,
+                        List.of(new ErrorDetail("email", "Please wait before requesting a new email verification.")),
+                        "/system/forgot-password"
+                );
+            }
+        }
+
+        String verificationToken = tokenProvider.generateTokenWithEmail(user.getEmail());
+
+        TokenStore tokenStore1 = saveToken(user, verificationToken, TokenType.FORGOT_PASSWORD   );
+        tokenStoreRepository.save(tokenStore1);
+
+        emailImplementService.sendMailRetrievePassword(user.getEmail(),verificationToken);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request, BindingResult result) {
+        if (result.hasErrors()) {
+            logger.info("------------ validation error: " + result.getAllErrors().size());
+
+            List<ErrorDetail> errors = result.getFieldErrors().stream()
+                    .map(error -> new ErrorDetail(error.getField(), error.getDefaultMessage()))
+                    .toList();
+
+            throw new ResetPasswordException(
+                    "Missing property",
+                    HttpStatus.BAD_REQUEST,
+                    errors,
+                    "/system/reset-password"
+            );
+        }
+        TokenStore tokenStore = tokenStoreRepository.findByTokenAndTokenTypeAndRevokedFalseAndExpiresAtAfter(
+                request.getToken(), TokenType.FORGOT_PASSWORD, LocalDateTime.now()
+        ).orElseThrow(() ->
+                new EmailVerifycationException(
+                        "Reset password issue",
+                        HttpStatus.BAD_REQUEST,
+                        List.of(
+                                new ErrorDetail("email", "Your token is expired or cannot find your token!!!")
+                        ),
+                        "/system/reset-password"
+                )
+        );
+        User user = tokenStore.getUser();
+        if (user == null) {
+            throw new UserNotFoundException(
+                    "User not found",
+                    HttpStatus.NOT_FOUND,
+                    List.of(new ErrorDetail("user", "User associated with this token does not exist")),
+                    "/system/reset-password"
+            );
+        }
+        String password = request.getPassword();
+        user.setPassword(passwordEncoder.encode(password));
+        userRepository.save(user);
+
+        tokenStore.setRevoked(true);
+        tokenStoreRepository.save(tokenStore);
     }
 }
