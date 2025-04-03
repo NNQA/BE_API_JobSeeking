@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -23,6 +22,7 @@ import java.util.Set;
 public class JobCategory {
     private static final Integer STATUS_INACTIVE = 0;
     private static final Integer STATUS_ACTIVE = 1;
+
     @ManyToMany(mappedBy = "categories", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<Job> listJob = new HashSet<>();
@@ -35,7 +35,9 @@ public class JobCategory {
     @Column(name="job_category_name")
     @NotNull(message = "Job category name must be provided")
     @FullTextField
-    private String jobCategoryName;
+    private String category;
+
+
 
     @Max(1)
     @Min(0)
@@ -48,14 +50,12 @@ public class JobCategory {
     @UpdateTimestamp
     private LocalDateTime updatedDateTime;
 
-    public JobCategory(String jobCategoryNameName) {
-        this.jobCategoryName = jobCategoryNameName;
+    public JobCategory(String category) {
+        this.category = category;
         this.status = JobPosition.getStatusActive();
     }
 
-    public JobCategory() {
-
-    }
+    public JobCategory() {}
 
     public static Integer getStatusInactive() {
         return JobCategory.STATUS_INACTIVE;
