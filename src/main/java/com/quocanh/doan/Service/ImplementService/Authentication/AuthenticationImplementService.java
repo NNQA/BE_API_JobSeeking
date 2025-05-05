@@ -4,8 +4,8 @@ import com.quocanh.doan.Exception.CheckCode.EmailVerifycationException;
 import com.quocanh.doan.Exception.CheckCode.ResetPasswordException;
 import com.quocanh.doan.Exception.ErrorDetail;
 import com.quocanh.doan.Exception.Signin.InvalidCredenticalException;
-import com.quocanh.doan.Exception.Signup.EmailExeption;
-import com.quocanh.doan.Exception.Signup.SignupException;
+import com.quocanh.doan.Exception.Authentication.EmailExeption;
+import com.quocanh.doan.Exception.Authentication.AuthenticationException;
 import com.quocanh.doan.Exception.UserNotFoundException;
 import com.quocanh.doan.Model.AuthProvider;
 import com.quocanh.doan.Model.Enum.ERole;
@@ -33,12 +33,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -86,7 +84,7 @@ public class AuthenticationImplementService implements IAuthenticationService {
                 .verifiedEmail(false)
                 .roles(Set.of(
                         roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new SignupException(
+                                .orElseThrow(() -> new AuthenticationException(
                                         "Missing property",
                                         HttpStatus.BAD_REQUEST,
                                         List.of(
@@ -100,7 +98,6 @@ public class AuthenticationImplementService implements IAuthenticationService {
     }
     private static UserPrincipal getUserPrincipal(Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
-
         if(!userPrincipal.getVerifiedEmail()) {
             throw new EmailVerifycationException(
                     "Verify email issue",
@@ -113,7 +110,6 @@ public class AuthenticationImplementService implements IAuthenticationService {
         }
         return userPrincipal;
     }
-
     private TokenStore saveToken(User user, String verifycationToken, TokenType type) {
         return TokenStore.builder()
                 .revoked(false)
@@ -125,6 +121,7 @@ public class AuthenticationImplementService implements IAuthenticationService {
     }
     @Override
     public void signUp(SignupRequest signupRequest, BindingResult result) {
+        logger.info("############## Authentication Service /api/auth/signup started");
         if (result.hasErrors()) {
             logger.info("------------ validation error: " + result.getAllErrors().size());
 
@@ -132,20 +129,10 @@ public class AuthenticationImplementService implements IAuthenticationService {
                     .map(error -> new ErrorDetail(error.getField(), error.getDefaultMessage()))
                     .toList();
 
-            throw new SignupException(
+            throw new AuthenticationException(
                     "Missing property",
                     HttpStatus.BAD_REQUEST,
                     errors,
-                    "/system/signup"
-            );
-        }
-        if(signupRequest.getEmail().isEmpty()) {
-            throw new EmailExeption(
-                    "Email issue",
-                    HttpStatus.BAD_REQUEST,
-                    List.of(
-                            new ErrorDetail("email", "Do not leave email blank!!!")
-                    ),
                     "/system/signup"
             );
         }
@@ -159,41 +146,38 @@ public class AuthenticationImplementService implements IAuthenticationService {
                     "/system/signup"
             );
         }
-        if(signupRequest.getPassword().isEmpty()) {
-            throw new SignupException(
-                    "password issue",
-                    HttpStatus.BAD_REQUEST,
-                    List.of(
-                            new ErrorDetail("password", "Do not leave password blank!!!")
-                    ),
-                    "/system/signup"
-            );
-        }
-        if(signupRequest.getPassword().length() < 4) {
-            throw new SignupException(
-                    "password issue",
-                    HttpStatus.BAD_REQUEST,
-                    List.of(
-                            new ErrorDetail("password", "Password needs to be at least 4 characters!!!")
-                    ),
-                    "/system/signup"
-            );
-        }
         logger.info("################ finished validation");
-        String verificationToken = tokenProvider.generateTokenWithEmail(signupRequest.getEmail());
 
+        String verificationToken = tokenProvider.generateTokenWithEmail(signupRequest.getEmail());
         User user = saveUser(signupRequest);
         TokenStore tokenStore = saveToken(user, verificationToken, TokenType.EMAIL_VERIFYCATION);
+
         this.save(user);
         iUserProfileService.CreateUserProfileUser(user.getId());
         tokenStoreRepository.save(tokenStore);
         emailImplementService.sendMailRegister(signupRequest.getEmail(), verificationToken);
+
+        logger.info("############## Authentication Service /api/auth/signup finish");
     }
 
     @Override
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest, BindingResult bindingResult) {
         try {
-            logger.info("############## /api/auth/login started");
+            logger.info("############## Authentication Service /api/auth/login started");
+            if (bindingResult.hasErrors()) {
+                logger.info("------------ validation error: " + bindingResult.getAllErrors().size());
+
+                List<ErrorDetail> errors = bindingResult.getFieldErrors().stream()
+                        .map(e -> new ErrorDetail(e.getField(), e.getDefaultMessage()))
+                        .toList();
+
+                throw new AuthenticationException(
+                        "Missing property",
+                        HttpStatus.BAD_REQUEST,
+                        errors,
+                        "/system/login"
+                );
+            }
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
@@ -209,21 +193,22 @@ public class AuthenticationImplementService implements IAuthenticationService {
                     .refreshToken(refreshToken)
                     .accessToken(accessToken)
                     .build();
-        } catch (AuthenticationException exception) {
-            logger.info("-------------- increnditails login");
+        } catch (org.springframework.security.core.AuthenticationException exception) {
+            logger.info("-------------- invalid login");
             throw new InvalidCredenticalException(
                     "Login issue",
                     HttpStatus.BAD_REQUEST,
                     List.of(
                             new ErrorDetail("login", exception.getMessage())
                     ),
-                    "/system/auth"
+                    "/system/auth/login"
             );
         }
     }
 
     @Override
     public void verifyEmailWithToken(String token) {
+        logger.info("############## Authentication Service /api/auth/verify-email started");
         TokenStore tokenStore = tokenStoreRepository.findByTokenAndTokenTypeAndRevokedFalseAndExpiresAtAfter(
                 token, TokenType.EMAIL_VERIFYCATION, LocalDateTime.now()
         ).orElseThrow(() ->
@@ -241,6 +226,7 @@ public class AuthenticationImplementService implements IAuthenticationService {
         user.setVerifiedEmail(true);
         this.save(user);
         tokenStoreRepository.save(tokenStore);
+        logger.info("############## Authentication Controller /api/auth/verify-email finished");
     }
     @Override
     public User updateRoleUser(Long id) {
@@ -249,9 +235,9 @@ public class AuthenticationImplementService implements IAuthenticationService {
         );
         Set<Role> roles = new HashSet<>();
         Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                .orElseThrow(() -> new SignupException("Error: Role is not found."));
+                .orElseThrow(() -> new AuthenticationException("Error: Role is not found."));
         Role supplierRole = roleRepository.findByName(ERole.ROLE_SUPPLIER)
-                .orElseThrow(() -> new SignupException("Error: Role is not found."));
+                .orElseThrow(() -> new AuthenticationException("Error: Role is not found."));
         roles.add(supplierRole);
         roles.add(userRole);
         user.setRoles(roles);
@@ -260,6 +246,7 @@ public class AuthenticationImplementService implements IAuthenticationService {
 
     @Override
     public void sendRequestEmailAgain(String email) {
+        logger.info("############## Authentication Service /api/auth/request-token-email started");
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new UserNotFoundException(
@@ -297,10 +284,12 @@ public class AuthenticationImplementService implements IAuthenticationService {
         tokenStoreRepository.save(tokenStore1);
 
         emailImplementService.sendMailRegister(user.getEmail(),verificationToken);
+        logger.info("############## Authentication Service /api/auth/request-token-email finished");
     }
 
     @Override
     public void forgotPassword(String email) {
+        logger.info("############## Authentication Service /api/auth/forgot-password started");
         User user = findUserWithEmail(email);
         Optional<TokenStore> tokenStoreOpt = tokenStoreRepository.findTopByUserAndTokenTypeOrderByCreatedDateTimeDesc(user, TokenType.FORGOT_PASSWORD);
 
@@ -322,10 +311,12 @@ public class AuthenticationImplementService implements IAuthenticationService {
         tokenStoreRepository.save(tokenStore1);
 
         emailImplementService.sendMailRetrievePassword(user.getEmail(),verificationToken);
+        logger.info("############## Authentication Service /api/auth/forgot-password finished");
     }
 
     @Override
     public void resetPassword(ResetPasswordRequest request, BindingResult result) {
+        logger.info("############## Authentication Service /api/auth/is-new-password started");
         if (result.hasErrors()) {
             logger.info("------------ validation error: " + result.getAllErrors().size());
 
@@ -367,5 +358,6 @@ public class AuthenticationImplementService implements IAuthenticationService {
 
         tokenStore.setRevoked(true);
         tokenStoreRepository.save(tokenStore);
+        logger.info("############## Authentication Service /api/auth/is-new-password finished");
     }
 }

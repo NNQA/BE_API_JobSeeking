@@ -54,10 +54,10 @@ public class AuthenticationController {
         );
     }
     @PostMapping("/login")
-    public ResponseEntity Login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity Login(@RequestBody @Valid  LoginRequest loginRequest, BindingResult bindingResult) {
         logger.info("############## Authentication Controller /api/auth/login started");
         return ResponseEntity.ok().body(
-                responseSuccess(iAuthenticationService.login(loginRequest), "Log in successfully")
+                responseSuccess(iAuthenticationService.login(loginRequest, bindingResult), "Log in successfully")
         );
     }
 

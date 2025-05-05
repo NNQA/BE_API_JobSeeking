@@ -1,8 +1,6 @@
 package com.quocanh.doan.Service.Interface.Authentication;
 
 import com.quocanh.doan.Model.User;
-import com.quocanh.doan.Service.ImplementService.User.UserPrincipal;
-import com.quocanh.doan.dto.request.UserUpdate;
 import com.quocanh.doan.dto.request.authentication.LoginRequest;
 import com.quocanh.doan.dto.request.authentication.ResetPasswordRequest;
 import com.quocanh.doan.dto.request.authentication.SignupRequest;
@@ -13,7 +11,7 @@ import java.util.List;
 
 public interface IAuthenticationService {
     void signUp(SignupRequest signupRequest, BindingResult result);
-    LoginResponse login(LoginRequest loginRequest);
+    LoginResponse login(LoginRequest loginRequest, BindingResult bindingResult);
     void verifyEmailWithToken(String token);
     User updateRoleUser(Long id);
     void sendRequestEmailAgain(String email);
